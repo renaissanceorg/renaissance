@@ -1,0 +1,12 @@
+{
+	"authors": [
+		"Tristan B. Velloza Kildaire"
+	],
+	"copyright": "Copyright © 2023, Tristan B. Velloza Kildaire",
+	"dependencies": {
+		"gogga": "~>0.1.3"
+	},
+	"description": "Reference implementation of the DNET server protocol",
+	"license": "AGPL 3.0",
+	"name": "renaissance"
+}
