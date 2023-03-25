@@ -1,19 +1,24 @@
 module renaissance.listeners.listener;
 
-import renaissance.server;
+import renaissance.listeners.consumer : ConnectionConsumer;
 
 public abstract class Listener
 {
-    private Server server;
+    /** 
+     * Any connections that we produce will be
+     * consumed by this consumer (pushed into it)
+     */
+    private ConnectionConsumer consumer;
 
     /** 
      * Constructs a new Listener and associates it with
-     * the provided server instance
+     * the provided consumer
+     *
      * Params:
-     *   server = the Server instance to attach the listener to
+     *   consumer = the ConnectionConsumer to consume new connections
      */
-    this(Server server)
+    this(ConnectionConsumer consumer)
     {
-        this.server = server;
+        this.consumer = consumer;
     }
 }
