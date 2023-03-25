@@ -8,5 +8,6 @@
 	},
 	"description": "Reference implementation of the DNET server protocol",
 	"license": "AGPL 3.0",
-	"name": "renaissance"
+	"name": "renaissance",
+	"targetType": "executable"
 }
