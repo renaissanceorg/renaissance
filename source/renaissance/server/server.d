@@ -12,7 +12,7 @@ import renaissance.connection;
  * all listeners attached to it, server state and
  * message processing
  */
-public class Server : ConnectionConsumer
+public class Server
 {
     // TODO: array of listeners
     private SList!(Listener) listenerQ;
@@ -71,7 +71,7 @@ public class Server : ConnectionConsumer
      * Params:
      *   newConnection = the connection to add
      */
-    public override void addConnection(Connection newConnection)
+    public void addConnection(Connection newConnection)
     {
         /* Lock the connection queue */
         connectionQLock.lock();
