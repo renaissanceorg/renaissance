@@ -12,3 +12,5 @@
 
 <br>
 <br>
+
+[![D](https://github.com/renaissanceorg/renaissance/actions/workflows/d.yml/badge.svg)](https://github.com/renaissanceorg/renaissance/actions/workflows/d.yml)
