@@ -36,6 +36,10 @@ public class Connection : Thread
      * after which it will be added to the server's connection
      * queue, finally starting the thread that manages this connection
      *
+     * TODO: Change this, the returning is goofy ah, I think perhaps
+     * we should only construct it and then let `Server.addConnection()`
+     * call start etc. - seeing that a Listener will call this
+     *
      * Params:
      *   associatedServer = the server to associate with
      *   clientSocket = the associated socket backing the client
