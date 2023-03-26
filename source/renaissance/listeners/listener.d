@@ -1,7 +1,15 @@
+/** 
+ * Listener type definitions
+ */
 module renaissance.listeners.listener;
 
 import renaissance.server;
 
+/** 
+ * Represents a producer of Connection objects
+ * which can then be associated with the Server
+ * attached to this listener
+ */
 public abstract class Listener
 {
     /** 
@@ -21,4 +29,6 @@ public abstract class Listener
     {
         this.server = server;
     }
+
+    // TODO: Maybe we an add attach method here - who knows
 }
