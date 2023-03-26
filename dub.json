@@ -4,7 +4,7 @@
 	],
 	"copyright": "Copyright © 2023, Tristan B. Velloza Kildaire",
 	"dependencies": {
-		"davinci": "~>0.0.1",
+		"davinci": "0.0.2",
 		"gogga": "~>0.1.3"
 	},
 	"description": "Reference implementation of the DNET server protocol",
