@@ -10,5 +10,6 @@
 	"description": "Reference implementation of the DNET server protocol",
 	"license": "AGPL 3.0",
 	"name": "renaissance",
-	"targetType": "executable"
+	"targetType": "executable",
+	"mainSourceFile": "source/renaissance/daemon.d"
 }
