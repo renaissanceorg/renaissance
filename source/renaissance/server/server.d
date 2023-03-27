@@ -43,6 +43,13 @@ public class Server
         /* Lock the listener queue */
         listenerQLock.lock();
 
+        /* On return or exception */
+        scope(exit)
+        {
+            /* Unlock the listener queue */
+            listenerQLock.unlock();
+        }
+
         /* If the listener has NOT added */
         if(canFind(listenerQ[], newListener))
         {
@@ -54,13 +61,6 @@ public class Server
         {
             /* Throw an exception */
             throw new RenaissanceException(ErrorType.LISTENER_ALREADY_ADDED);
-        }
-
-        /* On return or exception */
-        scope(exit)
-        {
-            /* Unlock the listener queue */
-            listenerQLock.unlock();
         }
     }
 
