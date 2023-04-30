@@ -7,13 +7,25 @@ import river.core;
 
 public class Connection : Thread
 {
+    /** 
+     * Associated server instance
+     */
     private Server associatedServer;
+
+    /** 
+     * Underlying stream connecting us to
+     * the client
+     */
     private Stream clientStream;
+
+    // TODO: TRistanable manager here
 
     private this(Server associatedServer, Stream clientStream)
     {
         this.associatedServer = associatedServer;
         this.clientStream = clientStream;
+
+        // TODO: Setup the tristanable manager here
 
         /* Set the worker function for the thread */
         super(&worker);
@@ -21,6 +33,9 @@ public class Connection : Thread
 
     private void worker()
     {
+        // TODO: Start tristanable manager here
+        // TODO: Well, we'd tasky I guess so I'd need to use it there I guess
+
         // TODO: Add worker function here
         while(true)
         {
