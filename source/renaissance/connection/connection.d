@@ -2,18 +2,18 @@ module renaissance.connection.connection;
 
 import davinci;
 import core.thread : Thread;
-import std.socket : Socket;
 import renaissance.server;
+import river.core;
 
 public class Connection : Thread
 {
     private Server associatedServer;
-    private Socket clientSocket;
+    private Stream clientStream;
 
-    private this(Server associatedServer, Socket clientSocket)
+    private this(Server associatedServer, Stream clientStream)
     {
         this.associatedServer = associatedServer;
-        this.clientSocket = clientSocket;
+        this.clientStream = clientStream;
 
         /* Set the worker function for the thread */
         super(&worker);
@@ -42,13 +42,13 @@ public class Connection : Thread
      *
      * Params:
      *   associatedServer = the server to associate with
-     *   clientSocket = the associated socket backing the client
+     *   clientStream = the associated stream backing the client
      *
      * Returns: the newly created Connection object
      */
-    public static Connection newConnection(Server associatedServer, Socket clientSocket)
+    public static Connection newConnection(Server associatedServer, Stream clientStream)
     {
-        Connection conn = new Connection(associatedServer, clientSocket);
+        Connection conn = new Connection(associatedServer, clientStream);
 
         /* Associate this connection with the provided server */
         associatedServer.addConnection(conn);
