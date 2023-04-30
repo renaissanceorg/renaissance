@@ -4,7 +4,6 @@
 	],
 	"copyright": "Copyright © 2023, Tristan B. Velloza Kildaire",
 	"dependencies": {
-		"botan": "~>1.13.4",
 		"davinci": "0.0.2",
 		"gogga": "~>0.1.3"
 	},
