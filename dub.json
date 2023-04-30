@@ -6,7 +6,8 @@
 	"dependencies": {
 		"davinci": "0.0.2",
 		"gogga": "~>0.1.3",
-		"river": "~>0.3.7"
+		"river": "~>0.3.7",
+		"tristanable": "~>2.6.12"
 	},
 	"description": "Reference implementation of the DNET server protocol",
 	"license": "AGPL 3.0",
