@@ -4,6 +4,7 @@ import davinci;
 import core.thread : Thread;
 import renaissance.server;
 import river.core;
+import tristanable;
 
 public class Connection : Thread
 {
@@ -19,6 +20,7 @@ public class Connection : Thread
     private Stream clientStream;
 
     // TODO: TRistanable manager here
+    private Manager tManager;
 
     private this(Server associatedServer, Stream clientStream)
     {
@@ -26,6 +28,7 @@ public class Connection : Thread
         this.clientStream = clientStream;
 
         // TODO: Setup the tristanable manager here
+        this.tManager = new Manager(clientStream);
 
         /* Set the worker function for the thread */
         super(&worker);
