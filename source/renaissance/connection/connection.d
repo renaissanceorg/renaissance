@@ -37,6 +37,8 @@ public class Connection : Thread
     private void worker()
     {
         // TODO: Start tristanable manager here
+        this.tManager.start();
+        
         // TODO: Well, we'd tasky I guess so I'd need to use it there I guess
 
         // TODO: Add worker function here
