@@ -5,6 +5,7 @@ import core.thread : Thread;
 import renaissance.server;
 import river.core;
 import tristanable;
+import renaissance.daemon : logger;
 
 public class Connection : Thread
 {
@@ -21,6 +22,7 @@ public class Connection : Thread
 
     // TODO: TRistanable manager here
     private Manager tManager;
+    private Queue incomingQueue;
 
     private this(Server associatedServer, Stream clientStream)
     {
@@ -30,15 +32,34 @@ public class Connection : Thread
         // TODO: Setup the tristanable manager here
         this.tManager = new Manager(clientStream);
 
+        // TODO: If we not using tasky, probably not, then
+        // ... register some queues here or use all
+        // ... we need access ti akk so maybe
+        // ... when the queue listener support drops
+        //
+        // UPDATE: Use the throwaway queue method
+        initTManager();
+
         /* Set the worker function for the thread */
         super(&worker);
+    }
+
+    private void initTManager()
+    {
+        /* Create a Queue (doesn't matter its ID) */
+        this.incomingQueue = new Queue(0);
+     
+        /* Set this Queue as the default Queue */
+        this.tManager.setDefaultQueue(this.incomingQueue);
     }
 
     private void worker()
     {
         // TODO: Start tristanable manager here
         this.tManager.start();
-        
+
+        logger.info("Connection thread '"~this.toString()~"' started");
+
         // TODO: Well, we'd tasky I guess so I'd need to use it there I guess
 
         // TODO: Add worker function here
@@ -47,7 +68,18 @@ public class Connection : Thread
             // TODO: Addn a tasky/tristanable queue managing thing with
             // ... socket here (probably just the latter)
             // ... which decodes using the `davinci` library
+
+            // Dequeue a message from the incoming queue
+            TaggedMessage incomingMessage = incomingQueue.dequeue();
+
+            // Process the message
+            handle(incomingMessage);
         }
+    }
+
+    private void handle(TaggedMessage incomingMessage)
+    {
+
     }
 
     /** 
