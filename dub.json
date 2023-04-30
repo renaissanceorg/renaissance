@@ -5,7 +5,7 @@
 	"copyright": "Copyright © 2023, Tristan B. Kildaire",
 	"dependencies": {
 		"davinci": "0.0.2",
-		"gogga": "~>0.1.3",
+		"gogga": "2.1.18",
 		"river": "~>0.3.7",
 		"tristanable": "3.1.9-beta"
 	},
