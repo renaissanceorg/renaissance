@@ -40,6 +40,9 @@ public class StreamListener : Listener
     {
         super(server);
 
+        /* Save the binding information */
+        this.bindAddr = bindAddr;
+
         /* Create the socket */
         servSock = new Socket(bindAddr.addressFamily(), SocketType.STREAM);
 
@@ -57,11 +60,11 @@ public class StreamListener : Listener
             /** 
              * Create a `SockStream` from the `Socket`,
              * a new connection handler with the stream
-             * and then start the handler on its own thread
+             * (doing so starts the connection handler on
+             * its own thread
              */
             Stream clientStream = new SockStream(clientSocket);
             Connection clientConnection = Connection.newConnection(server, clientStream);
-            clientConnection.start();
         }
     }
 
@@ -84,6 +87,9 @@ public class StreamListener : Listener
         {
             throw new ListenerException("Could not listen on socket '"~servSock.toString()~"'");
         }
+
+        /* Set state to running */
+        isRunning = true;
 
         /* Start the worker thread */
         workerThread.start();
