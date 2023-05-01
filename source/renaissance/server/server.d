@@ -70,7 +70,7 @@ public class Server
 
         /* Stop all listeners to prevent any new connections coming in */
         stopListeners();
-        
+
         // TODO: Remove all connection (disconnected currently added connections)
     }
 
@@ -90,6 +90,25 @@ public class Server
         foreach(Listener curListener; listenerQ)
         {
             curListener.stopListener();
+        }
+    }
+
+    private void startListeners()
+    {
+        /* Lock the listener queue */
+        listenerQLock.lock();
+
+        /* On return or exception */
+        scope(exit)
+        {
+            /* Unlock the listener queue */
+            listenerQLock.unlock();
+        }
+
+        /* Start each listener */
+        foreach(Listener curListener; listenerQ)
+        {
+            curListener.startListener();
         }
     }
 
