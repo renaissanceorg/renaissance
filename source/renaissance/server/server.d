@@ -47,6 +47,8 @@ public class Server
         // ... perhaps listeners should? Maybe don't allow that
         // NOTE: Reason we have add listener here is such that if we shutdown we can
         // ... kill them all. I guess we need not dtart them but it won't hurt
+        /* Start all listeners */
+        startListeners();
     }
 
     public void restart()
