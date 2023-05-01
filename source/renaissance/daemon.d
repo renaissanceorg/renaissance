@@ -20,7 +20,16 @@ void main()
     logger.info("Starting renaissance...");
 
     // TODO: Add command-line parsing here, using jcli
-    JSONValue config = getConfig("renaissance.json");
+    // JSONValue config = getConfig("renaissance.json");
+
+    import renaissance.server;
+    Server server = new Server();
+
+    import renaissance.listeners;
+    import std.socket;
+    Address listenAddr = parseAddress("::1", 9091);
+    StreamListener streamListener = StreamListener.create(server, listenAddr);
+    
 }
 
 JSONValue getConfig(string configPath)
