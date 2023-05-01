@@ -16,7 +16,7 @@ public abstract class Listener
      * Associated server to add new connections
      * to
      */
-    private Server server;
+    protected Server server;
 
     /** 
      * Constructs a new Listener and associates it with
@@ -31,4 +31,8 @@ public abstract class Listener
     }
 
     // TODO: Maybe we an add attach method here - who knows
+
+    public abstract void startListener();
+
+    public abstract void stopListener();
 }
