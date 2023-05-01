@@ -1,0 +1,10 @@
+{
+    "network" : {
+        "listeners" : {
+            "myListener1" : {
+                "type" : "unix",
+                "path": "/tmp/renaissance.sock"
+            }
+        }
+    }
+}
