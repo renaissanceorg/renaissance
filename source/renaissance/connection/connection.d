@@ -79,7 +79,7 @@ public class Connection : Thread
 
     private void handle(TaggedMessage incomingMessage)
     {
-
+        logger.dbg("Examining message '"~incomingMessage.toString()~"' ...");
     }
 
     /** 
