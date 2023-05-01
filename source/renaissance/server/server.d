@@ -64,11 +64,14 @@ public class Server
      */
     public void stop()
     {
-        /* Set state to not running */
+        // TODO: If the connection attempts to call `addConnection` and fails then it must kill itself
+        /* Set state to not running (preventing any pending connections from being added) */
         isRunning = false;
 
-        // TODO: Stop all listeners
-        // TODO: Remove all connection
+        /* Stop all listeners to prevent any new connections coming in */
+        stopListeners();
+        
+        // TODO: Remove all connection (disconnected currently added connections)
     }
 
     private void stopListeners()
