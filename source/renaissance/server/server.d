@@ -51,7 +51,7 @@ public class Server
         }
 
         /* If the listener has NOT added */
-        if(canFind(listenerQ[], newListener))
+        if(!canFind(listenerQ[], newListener))
         {
             /* Add the listener */
             listenerQ.insertAfter(listenerQ[], newListener);

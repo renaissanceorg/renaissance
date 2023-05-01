@@ -28,6 +28,9 @@ public abstract class Listener
     this(Server server)
     {
         this.server = server;
+
+        /* Add ourselves as a listener to the server */
+        server.addListener(this);
     }
 
     // TODO: Maybe we an add attach method here - who knows
