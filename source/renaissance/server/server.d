@@ -22,12 +22,72 @@ public class Server
     private SList!(Connection) connectionQ;
     private Mutex connectionQLock;
 
+    // TODO: volatility
+    private bool isRunning = false;
+
     // TODO: Add constructor
     this()
     {
         /* Initialize all mutexes */
         this.listenerQLock = new Mutex();
         this.connectionQLock = new Mutex();
+    }
+
+
+    /** 
+     * Starts the server by starting all listeners
+     * and allowing connections to be added (TODO: implement the latter)
+     */
+    public void start()
+    {
+        // Set state to running
+        isRunning = true;
+
+        // TODO: How would we ensure that can can add listeners whilst running
+        // ... perhaps listeners should? Maybe don't allow that
+        // NOTE: Reason we have add listener here is such that if we shutdown we can
+        // ... kill them all. I guess we need not dtart them but it won't hurt
+    }
+
+    public void restart()
+    {
+        // TODO: This requires each listener to properly implement start and create its sockets or whatever
+        // ... in the correct places
+
+        stop();
+        start();
+    }
+
+    /** 
+     * Stops the server by stopping all listeners,
+     * and disconnecting any connected clients (TODO: implement the latter)
+     */
+    public void stop()
+    {
+        /* Set state to not running */
+        isRunning = false;
+
+        // TODO: Stop all listeners
+        // TODO: Remove all connection
+    }
+
+    private void stopListeners()
+    {
+        /* Lock the listener queue */
+        listenerQLock.lock();
+
+        /* On return or exception */
+        scope(exit)
+        {
+            /* Unlock the listener queue */
+            listenerQLock.unlock();
+        }
+
+        /* Stop each listener */
+        foreach(Listener curListener; listenerQ)
+        {
+            curListener.stopListener();
+        }
     }
 
     /** 
@@ -56,7 +116,7 @@ public class Server
             /* Add the listener */
             listenerQ.insertAfter(listenerQ[], newListener);
         }
-        /* If the listener has ALEADY been added */
+        /* If the listener has ALREADY been added */
         else
         {
             /* Throw an exception */
@@ -64,6 +124,10 @@ public class Server
         }
     }
 
+    // TODO: Add a `removeListener(Listener)` method
+
+
+    // TODO: Unless the server is started, then don't allow connection additions
     /** 
      * Consumes the provided connection and adds it to the connection
      * queue

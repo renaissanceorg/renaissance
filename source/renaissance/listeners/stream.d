@@ -53,7 +53,6 @@ public class StreamListener : Listener
         {
             Socket clientSocket = servSock.accept();
             logger.info("New incoming connection on listener '"~this.toString()~"' from '"~clientSocket.toString()~"'");
-            // TODO: add log here
 
             /** 
              * Create a `SockStream` from the `Socket`,

@@ -29,7 +29,8 @@ void main()
     import std.socket;
     Address listenAddr = parseAddress("::1", 9091);
     StreamListener streamListener = StreamListener.create(server, listenAddr);
-    
+
+    server.start();
 }
 
 JSONValue getConfig(string configPath)

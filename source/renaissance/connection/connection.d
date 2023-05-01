@@ -60,6 +60,9 @@ public class Connection : Thread
 
         logger.info("Connection thread '"~this.toString()~"' started");
 
+        // TODO: Add ourselves to the server's queue, we might need to figure out, first what
+        // ... kind of connection we are
+
         // TODO: Well, we'd tasky I guess so I'd need to use it there I guess
 
         // TODO: Add worker function here
