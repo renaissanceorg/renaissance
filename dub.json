@@ -4,7 +4,8 @@
 	],
 	"copyright": "Copyright © 2023, Tristan B. Kildaire",
 	"dependencies": {
-		"davinci": "0.0.2",
+		"dante": "~>0.0.2",
+		"davinci": "0.0.3",
 		"gogga": "2.1.18",
 		"lumars": "~>1.11.0",
 		"river": "~>0.3.7",
