@@ -5,7 +5,7 @@ import core.thread : Thread;
 import renaissance.server;
 import river.core;
 import tristanable;
-import renaissance.daemon : logger;
+import renaissance.logging;
 
 public class Connection : Thread
 {
@@ -72,8 +72,19 @@ public class Connection : Thread
             // ... socket here (probably just the latter)
             // ... which decodes using the `davinci` library
 
+            import core.thread;
+            // Thread.sleep(dur!("seconds")(5));
+
+            // FIXME: If connection dies, something spins inside tristanable me thinks
+            // ... causing a high load average, it MIGHT be when an error
+            // ... occurs that it keeps going back to ask for recv
+            // ... (this would make sense as this woul dbe something)
+            // ... we didn't test for
+
             // Dequeue a message from the incoming queue
             TaggedMessage incomingMessage = incomingQueue.dequeue();
+
+            logger.dbg("Awoken? after dequeue()");
 
             // Process the message
             handle(incomingMessage);

@@ -6,6 +6,7 @@ import renaissance.listeners;
 import std.algorithm : canFind;
 import renaissance.exceptions;
 import renaissance.connection;
+import renaissance.logging;
 
 /** 
  * Represents an instance of the daemon which manages
@@ -49,6 +50,8 @@ public class Server
         // ... kill them all. I guess we need not dtart them but it won't hurt
         /* Start all listeners */
         startListeners();
+
+        // TODO: If anything else must run then start a thread for it here
     }
 
     public void restart()
@@ -110,6 +113,7 @@ public class Server
         /* Start each listener */
         foreach(Listener curListener; listenerQ)
         {
+            logger.dbg("Starting listener '"~curListener.toString()~"' ...");
             curListener.startListener();
         }
     }
@@ -170,4 +174,62 @@ public class Server
         /* Unlock the connection queue */
         connectionQLock.unlock();
     }
+}
+
+version(unittest)
+{
+    import renaissance.server;
+    import renaissance.listeners;
+    
+    // TODO: Building a testing client with the imports below
+    import std.socket;
+    import tristanable.manager;
+    import tristanable.queue;
+    import tristanable.encoding;
+    import core.thread;
+
+    import dante;
+}
+
+unittest
+{
+    /** 
+     * Setup a `Server` instance followed by
+     * creating a single listener, after this
+     * start the server
+     */
+    Server server = new Server();
+    // Address listenAddr = parseAddress("::1", 9091);
+    Address listenAddr = new UnixAddress("/tmp/renaissance2.sock");
+    StreamListener streamListener = StreamListener.create(server, listenAddr);
+    server.start();
+
+    scope(exit)
+    {
+        import std.stdio;
+        remove((cast(UnixAddress)listenAddr).path().ptr);
+    }
+
+    /**
+     * Create a few clients here (TODO: We'd need the client code)
+     */
+    for(ulong idx = 0; idx < 10; idx++)
+    {
+        Socket clientSocket = new Socket(listenAddr.addressFamily(), SocketType.STREAM);
+        clientSocket.connect(listenAddr);
+        Manager manager = new Manager(clientSocket);
+        Queue myQueue = new Queue(69);
+        manager.registerQueue(myQueue);
+        manager.start();
+
+        // Thread.sleep(dur!("seconds")(2));
+        TaggedMessage myMessage = new TaggedMessage(69, cast(byte[])"ABBA");
+        manager.sendMessage(myMessage);
+        manager.sendMessage(myMessage);
+        // Thread.sleep(dur!("seconds")(2));
+        manager.sendMessage(myMessage);
+        manager.sendMessage(myMessage);
+    }
+
+    // while(true)
 }

@@ -8,7 +8,7 @@ import river.core;
 import river.impls.sock : SockStream;
 import core.thread;
 import renaissance.connection;
-import renaissance.daemon : logger;
+import renaissance.logging;
 
 public class StreamListener : Listener
 {
