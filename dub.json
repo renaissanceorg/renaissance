@@ -4,12 +4,12 @@
 	],
 	"copyright": "Copyright © 2023, Tristan B. Kildaire",
 	"dependencies": {
-		"dante": "~>0.0.2",
+		"dante": "0.1.1",
 		"davinci": "0.0.3",
 		"gogga": "2.1.18",
 		"lumars": "~>1.11.0",
 		"river": "~>0.3.7",
-		"tristanable": "3.1.9-beta"
+		"tristanable": "3.2.0-beta"
 	},
 	"description": "Reference implementation of the DNET server protocol",
 	"license": "AGPL 3.0",
