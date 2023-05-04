@@ -210,26 +210,29 @@ unittest
         remove((cast(UnixAddress)listenAddr).path().ptr);
     }
 
-    /**
-     * Create a few clients here (TODO: We'd need the client code)
-     */
-    for(ulong idx = 0; idx < 10; idx++)
-    {
-        Socket clientSocket = new Socket(listenAddr.addressFamily(), SocketType.STREAM);
-        clientSocket.connect(listenAddr);
-        Manager manager = new Manager(clientSocket);
-        Queue myQueue = new Queue(69);
-        manager.registerQueue(myQueue);
-        manager.start();
+    // /**
+    //  * Create a few clients here (TODO: We'd need the client code)
+    //  */
+    // for(ulong idx = 0; idx < 10; idx++)
+    // {
+    //     Socket clientSocket = new Socket(listenAddr.addressFamily(), SocketType.STREAM);
+    //     clientSocket.connect(listenAddr);
+    //     Manager manager = new Manager(clientSocket);
+    //     Queue myQueue = new Queue(69);
+    //     manager.registerQueue(myQueue);
+    //     manager.start();
 
-        // Thread.sleep(dur!("seconds")(2));
-        TaggedMessage myMessage = new TaggedMessage(69, cast(byte[])"ABBA");
-        manager.sendMessage(myMessage);
-        manager.sendMessage(myMessage);
-        // Thread.sleep(dur!("seconds")(2));
-        manager.sendMessage(myMessage);
-        manager.sendMessage(myMessage);
-    }
+    //     // Thread.sleep(dur!("seconds")(2));
+    //     TaggedMessage myMessage = new TaggedMessage(69, cast(byte[])"ABBA");
+    //     manager.sendMessage(myMessage);
+    //     manager.sendMessage(myMessage);
+    //     // Thread.sleep(dur!("seconds")(2));
+    //     manager.sendMessage(myMessage);
+    //     manager.sendMessage(myMessage);
+    // }
+
+    DanteClient client = new DanteClient(new UnixAddress("/tmp/renaissance2.sock"));
+
 
     // while(true)
     // Thread.sleep(dur!("seconds")(20));
