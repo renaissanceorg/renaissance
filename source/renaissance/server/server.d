@@ -231,7 +231,13 @@ unittest
     //     manager.sendMessage(myMessage);
     // }
 
+    
     DanteClient client = new DanteClient(new UnixAddress("/tmp/renaissance2.sock"));
+
+    client.start();
+
+    client.nopRequest();
+    client.nopRequest();
 
 
     // while(true)
