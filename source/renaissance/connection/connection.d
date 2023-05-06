@@ -98,7 +98,7 @@ public class Connection : Thread
         byte[] payload = incomingMessage.getPayload();
         import davinci;
         BaseMessage baseMessage = BaseMessage.decode(payload);
-        logger.dbg("Incoming message: "~baseMessage.toString());
+        logger.dbg("Incoming message: "~baseMessage.getCommand().toString());
         
         logger.dbg("BaseMessage type: ", baseMessage.getMessageType());
 
