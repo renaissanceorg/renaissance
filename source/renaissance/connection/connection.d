@@ -94,6 +94,20 @@ public class Connection : Thread
     private void handle(TaggedMessage incomingMessage)
     {
         logger.dbg("Examining message '"~incomingMessage.toString()~"' ...");
+
+        byte[] payload = incomingMessage.getPayload();
+        import davinci;
+        BaseMessage baseMessage = BaseMessage.decode(payload);
+        logger.dbg("Incoming message: "~baseMessage.toString());
+        
+        logger.dbg("BaseMessage type: ", baseMessage.getMessageType());
+
+        if(baseMessage.getCommandType() == CommandType.NOP_COMMAND)
+        {
+            import davinci.c2s.test;
+            logger.dbg("We got a NOP");
+            TestMessage nopMessage = cast(TestMessage)baseMessage.getCommand();
+        }
     }
 
     /** 
