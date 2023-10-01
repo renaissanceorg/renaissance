@@ -81,6 +81,8 @@ public class Connection : Thread
             // ... (this would make sense as this woul dbe something)
             // ... we didn't test for
 
+            // TODO: We SHOULD be waiting for a message from ANY queue/tag
+
             // Dequeue a message from the incoming queue
             TaggedMessage incomingMessage = incomingQueue.dequeue();
 
