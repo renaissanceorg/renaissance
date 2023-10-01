@@ -19,7 +19,8 @@ void main()
 
     import renaissance.listeners;
     import std.socket;
-    Address listenAddr = parseAddress("::1", 9091);
+    // Address listenAddr = parseAddress("::1", 9091);
+    Address listenAddr = new UnixAddress("/tmp/renaissance.sock");
     StreamListener streamListener = StreamListener.create(server, listenAddr);
 
     server.start();
