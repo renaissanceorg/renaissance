@@ -6,10 +6,10 @@
 	"dependencies": {
 		"dante": ">=0.1.11",
 		"davinci": ">=0.1.2",
-		"gogga": "2.1.18",
+		"gogga": ">=2.1.18",
 		"lumars": "~>1.11.0",
-		"river": "~>0.3.7",
-		"tristanable": "3.2.0-beta"
+		"river": ">=0.3.7",
+		"tristanable": ">=4.0.0-beta"
 	},
 	"description": "Reference implementation of the DNET server protocol",
 	"license": "AGPL 3.0",
