@@ -81,8 +81,6 @@ public class Connection : Thread
             // ... (this would make sense as this woul dbe something)
             // ... we didn't test for
 
-            // TODO: We SHOULD be waiting for a message from ANY queue/tag
-
             // Dequeue a message from the incoming queue
             TaggedMessage incomingMessage = incomingQueue.dequeue();
 
@@ -93,6 +91,15 @@ public class Connection : Thread
         }
     }
 
+    /** 
+     * Given a `TaggedMessage` this method will decode
+     * it into a Davinci `BaseMessage`, determine the
+     * payload type via this header and then handle
+     * the message/command accordingly
+     *
+     * Params:
+     *   incomingMessage = the `TaggedMessage`
+     */
     private void handle(TaggedMessage incomingMessage)
     {
         logger.dbg("Examining message '"~incomingMessage.toString()~"' ...");
