@@ -115,7 +115,7 @@ public class Connection : Thread
         {
             import davinci.c2s.test;
             logger.dbg("We got a NOP");
-            TestMessage nopMessage = cast(TestMessage)baseMessage.getCommand();
+            NopMessage nopMessage = cast(NopMessage)baseMessage.getCommand();
 
             // TODO: This is for testing, I send the nop back
             this.tManager.sendMessage(incomingMessage);
