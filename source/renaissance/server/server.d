@@ -174,6 +174,15 @@ public class Server
         /* Unlock the connection queue */
         connectionQLock.unlock();
     }
+
+    public bool attemptAuth(string username, string password)
+    {
+        logger.dbg("Attempting auth with user '", username, "' and password '", password, "'");
+
+        // TODO: Implement me
+
+        return true;
+    }
 }
 
 version(unittest)

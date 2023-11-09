@@ -111,6 +111,8 @@ public class Connection : Thread
         
         logger.dbg("BaseMessage type: ", baseMessage.getMessageType());
 
+        Command response;
+
         if(baseMessage.getCommandType() == CommandType.NOP_COMMAND)
         {
             import davinci.c2s.test;
@@ -120,6 +122,28 @@ public class Connection : Thread
             // TODO: This is for testing, I send the nop back
             this.tManager.sendMessage(incomingMessage);
         }
+        // Handle authentication request
+        else if(baseMessage.getCommandType() == CommandType.AUTH_COMMAND)
+        {
+            import davinci.c2s.auth : AuthMessage, AuthResponse;
+
+            AuthMessage authMessage = cast(AuthMessage)baseMessage.getCommand();
+            bool status = this.associatedServer.attemptAuth(authMessage.getUsername(), authMessage.getPassword());
+            
+            AuthResponse authResp = new AuthMessage();
+            if(status)
+            {
+                authResp.good();
+            }
+            else
+            {
+                authResp.bad();
+            }
+            response = authResp;
+        }
+
+        // Response to send back
+        this.tManager.sendMessage(response);
     }
 
     /** 
