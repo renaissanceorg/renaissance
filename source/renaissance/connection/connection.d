@@ -111,7 +111,10 @@ public class Connection : Thread
         
         logger.dbg("BaseMessage type: ", baseMessage.getMessageType());
 
-        Command response;
+        BaseMessage response;
+        MessageType mType;
+        Command responseCommand;
+        CommandType responseType;
 
         if(baseMessage.getCommandType() == CommandType.NOP_COMMAND)
         {
@@ -119,8 +122,9 @@ public class Connection : Thread
             logger.dbg("We got a NOP");
             NopMessage nopMessage = cast(NopMessage)baseMessage.getCommand();
 
-            // TODO: This is for testing, I send the nop back
-            this.tManager.sendMessage(incomingMessage);
+            mType = MessageType.CLIENT_TO_SERVER;
+            responseType = CommandType.NOP_COMMAND;
+            responseCommand = nopMessage;
         }
         // Handle authentication request
         else if(baseMessage.getCommandType() == CommandType.AUTH_COMMAND)
@@ -130,7 +134,7 @@ public class Connection : Thread
             AuthMessage authMessage = cast(AuthMessage)baseMessage.getCommand();
             bool status = this.associatedServer.attemptAuth(authMessage.getUsername(), authMessage.getPassword());
             
-            AuthResponse authResp = new AuthMessage();
+            AuthResponse authResp = new AuthResponse();
             if(status)
             {
                 authResp.good();
@@ -139,11 +143,20 @@ public class Connection : Thread
             {
                 authResp.bad();
             }
-            response = authResp;
+
+            mType = MessageType.CLIENT_TO_SERVER;
+            responseType = CommandType.AUTH_RESPONSE;
+            responseCommand = authResp;
         }
 
-        // Response to send back
-        this.tManager.sendMessage(response);
+        // Generate response
+        response = new BaseMessage(mType, responseType, responseCommand);
+        
+
+        // Send response using same tag (for matching) and
+        // ... setting the new response payload
+        incomingMessage.setPayload(response.encode());
+        this.tManager.sendMessage(incomingMessage);
     }
 
     /** 
