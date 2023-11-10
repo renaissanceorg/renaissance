@@ -183,6 +183,13 @@ public class Server
 
         return true;
     }
+
+    public string[] getChannelNames(ulong offset, ubyte limit)
+    {
+        // TODO: Implement me
+
+        return ["#general", "#tomfoolery"];
+    }
 }
 
 version(unittest)
