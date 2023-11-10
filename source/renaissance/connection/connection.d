@@ -148,6 +148,22 @@ public class Connection : Thread
             responseType = CommandType.AUTH_RESPONSE;
             responseCommand = authResp;
         }
+        // Handle channel list requests
+        else if(baseMessage.getCommandType() == CommandType.CHANNELS_ENUMERATE_REQ)
+        {
+            import davinci.c2s.channels : ChannelEnumerateRequest, ChannelEnumerateReply;
+
+            ChannelEnumerateRequest chanEnumReq = cast(ChannelEnumerateRequest)baseMessage.getCommand();
+            ubyte limit = chanEnumReq.getLimit();
+            ulong offset = chanEnumReq.getOffset();
+
+            string[] channelNames = this.associatedServer.getChannelNames(offset, limit);
+            ChannelEnumerateReply chanEnumRep = new ChannelEnumerateReply(channelNames);
+
+            mType = MessageType.CLIENT_TO_SERVER;
+            responseType = CommandType.CHANNELS_ENUMERATE_REP;
+            responseCommand = chanEnumRep;
+        }
 
         // Generate response
         response = new BaseMessage(mType, responseType, responseCommand);
