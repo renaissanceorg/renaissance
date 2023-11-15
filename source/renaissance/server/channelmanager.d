@@ -53,6 +53,11 @@ public final class ChannelManager
         return channel in this.channels;
     }
 
+    private Channel* channelGet(string channel)
+    {
+        return getChannel(channel);
+    }
+
     public bool channelExists(string channel)
     {
         return getChannel(channel) !is null;
@@ -83,7 +88,9 @@ public final class ChannelManager
         return true;
     }
 
-    public void membershipJoin(string channel, string username)
+    // NOTE: In future we could lock just the channel entry?
+    // (once it has been found)
+    public bool membershipJoin(string channel, string username)
     {
         // Lock channels map
         this.channelsLock.lock();
@@ -95,7 +102,35 @@ public final class ChannelManager
             this.channelsLock.unlock();
         }
 
+        // Get the channel, check for our own membership
+        Channel* channelDesc = channelGet(channel);
 
+        // If not found, then that's an error
+        if(channelDesc is null)
+        {
+            return false;
+        }
         
+        // Search for membership, if already present, then an error
+        foreach(string member; channelDesc.members)
+        {
+            if(member == username)
+            {
+                return false;
+            }
+        }
+
+        // If not, then add user and it is fine
+        channelDesc.members.insertAfter(channelDesc.members[], username);
+
+        return true;
     }
+}
+
+unittest
+{
+    ChannelManager chanMan = new ChannelManager();
+
+    // TODO: Add testing here
+
 }
