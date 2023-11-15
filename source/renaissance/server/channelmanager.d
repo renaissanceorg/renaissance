@@ -69,6 +69,18 @@ public final class ChannelManager
             // Unlock channels map
             this.channelsLock.unlock();
         }
+
+        if(channelExists(channel))
+        {
+            return false;
+        }
+
+        // Add a new channel descriptor
+        Channel channelDesc = Channel();
+        channelDesc.name = channel;
+        this.channels[channel] = channelDesc;
+
+        return true;
     }
 
     public void membershipJoin(string channel, string username)
