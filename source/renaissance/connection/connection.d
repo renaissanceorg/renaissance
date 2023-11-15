@@ -87,7 +87,16 @@ public class Connection : Thread
             logger.dbg("Awoken? after dequeue()");
 
             // Process the message
-            handle(incomingMessage);
+            TaggedMessage response = handle(incomingMessage);
+            if(response !is null)
+            {
+                logger.dbg("There was a response, sending: ", response);
+                this.tManager.sendMessage(incomingMessage);
+            }
+            else
+            {
+                logger.dbg("There was no response, not sending anything.");
+            }
         }
     }
 
@@ -99,8 +108,10 @@ public class Connection : Thread
      *
      * Params:
      *   incomingMessage = the `TaggedMessage`
+     * Returns: the response `TaggedMessage`, or
+     * `null` if no response is to be sent
      */
-    private void handle(TaggedMessage incomingMessage)
+    private TaggedMessage handle(TaggedMessage incomingMessage)
     {
         logger.dbg("Examining message '"~incomingMessage.toString()~"' ...");
 
@@ -164,15 +175,23 @@ public class Connection : Thread
             responseType = CommandType.CHANNELS_ENUMERATE_REP;
             responseCommand = chanEnumRep;
         }
+        // Unsupported type for server
+        else
+        {
+            logger.warn("Received unsupported message type", baseMessage);
+
+            // TODO: Generate error here
+        }
 
         // Generate response
         response = new BaseMessage(mType, responseType, responseCommand);
-        
 
-        // Send response using same tag (for matching) and
-        // ... setting the new response payload
+        // Construct a response using the same tag
+        // (for matching) but a new payload (the
+        // response message)
         incomingMessage.setPayload(response.encode());
-        this.tManager.sendMessage(incomingMessage);
+        
+        return incomingMessage;
     }
 
     /** 
