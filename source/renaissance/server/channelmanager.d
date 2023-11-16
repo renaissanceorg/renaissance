@@ -3,6 +3,7 @@ module renaissance.server.channelmanager;
 import renaissance.server.server : Server;
 import std.container.slist : SList;
 import core.sync.mutex : Mutex;
+import renaissance.logging;
 
 public struct Channel
 {
@@ -88,6 +89,43 @@ public final class ChannelManager
         return true;
     }
 
+    public string[] getChannelNames(ulong offset, ubyte limit)
+    {
+        // Lock channels map
+        this.channelsLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock channels map
+            this.channelsLock.unlock();
+        }
+
+        // TODO: Implement offset and limit
+
+        // Adjust offset if it overshoots available
+        // items
+        if(!(offset <= this.channels.length))
+        {
+            offset = 0;
+        }
+
+        ulong upperBound = offset+limit;
+        logger.dbg("Upper bound (before): ", upperBound);
+
+        if(upperBound >= this.channels.keys().length)
+        {
+            upperBound = this.channels.keys().length-1;
+        }
+
+        logger.dbg("Upper bound (after): ", upperBound);
+        logger.dbg("Limit: ", limit);
+
+        string[] channels = this.channels.keys()[offset..upperBound];
+
+        return channels;
+    }
+
     // NOTE: In future we could lock just the channel entry?
     // (once it has been found)
     public bool membershipJoin(string channel, string username)
@@ -120,10 +158,53 @@ public final class ChannelManager
             }
         }
 
+        // TODO: Run any policies here
+
         // If not, then add user and it is fine
         channelDesc.members.insertAfter(channelDesc.members[], username);
 
+        // TODO: Run notification hooks here on the server
+
         return true;
+    }
+
+    public bool membershipLeave(string channel, string username)
+    {
+        // Lock channels map
+        this.channelsLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock channels map
+            this.channelsLock.unlock();
+        }
+
+        // Get the channel, check for our own membership
+        Channel* channelDesc = channelGet(channel);
+
+        // If not found, then that's an error
+        if(channelDesc is null)
+        {
+            return false;
+        }
+        
+        // Search for membership, if present, then leave
+        foreach(string member; channelDesc.members)
+        {
+            if(member == username)
+            {
+                // Remove ourselves from the channel
+                channelDesc.members.linearRemoveElement(username);
+
+                // TODO: Run notification hooks here on the server
+
+                return true;
+            }
+        }
+
+        // If we were NOT present then that's an error
+        return false;
     }
 }
 
