@@ -9,6 +9,90 @@ public struct Channel
 {
     private SList!(string) members;
     private string name;
+
+    // TODO: Actually use this
+    private Mutex channelLock;
+
+    this(string channelName)
+    {
+        this.channelLock = new Mutex();
+        this.name = channelName;
+    }
+
+    public bool hasMember(string username)
+    {
+        // Lock the channel
+        this.channelLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            this.channelLock.unlock();
+        }
+
+        // Search for membership
+        foreach(string member; this.members)
+        {
+            if(member == username)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool removeMember(string username)
+    {
+        // Lock the channel
+        this.channelLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            this.channelLock.unlock();
+        }
+
+        // Only remove if we have the member
+        if(hasMember(username))
+        {
+            // Remove ourselves from the channel
+            this.members.linearRemoveElement(username);
+
+            return true;
+        }
+        // Error if not present
+        else
+        {
+            return false;
+        }
+    }
+
+    public bool addMember(string username)
+    {
+        // Lock the channel
+        this.channelLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            this.channelLock.unlock();
+        }
+
+        // Only add if we are not yet present
+        if(!hasMember(username))
+        {
+            // Remove ourselves from the channel
+            this.members.insertAfter(this.members[], username);
+
+            return true;
+        }
+        // Error if present already
+        else
+        {
+            return false;
+        }
+    }
 }
 
 public final class ChannelManager
@@ -82,8 +166,7 @@ public final class ChannelManager
         }
 
         // Add a new channel descriptor
-        Channel channelDesc = Channel();
-        channelDesc.name = channel;
+        Channel channelDesc = Channel(channel);
         this.channels[channel] = channelDesc;
 
         return true;
@@ -94,6 +177,7 @@ public final class ChannelManager
         // Lock channels map
         this.channelsLock.lock();
 
+        // TODO: Move lock
         // On exit
         scope(exit)
         {
@@ -133,6 +217,7 @@ public final class ChannelManager
         // Lock channels map
         this.channelsLock.lock();
 
+        // TODO: Move lock
         // On exit
         scope(exit)
         {
@@ -148,24 +233,16 @@ public final class ChannelManager
         {
             return false;
         }
-        
-        // Search for membership, if already present, then an error
-        foreach(string member; channelDesc.members)
-        {
-            if(member == username)
-            {
-                return false;
-            }
-        }
 
         // TODO: Run any policies here
 
         // If not, then add user and it is fine
-        channelDesc.members.insertAfter(channelDesc.members[], username);
+        //
+        // Return value is whether or not
+        // adding succeeded
+        return channelDesc.addMember(username);
 
         // TODO: Run notification hooks here on the server
-
-        return true;
     }
 
     public bool membershipLeave(string channel, string username)
@@ -173,6 +250,7 @@ public final class ChannelManager
         // Lock channels map
         this.channelsLock.lock();
 
+        // TODO: Move lock
         // On exit
         scope(exit)
         {
@@ -189,22 +267,15 @@ public final class ChannelManager
             return false;
         }
         
-        // Search for membership, if present, then leave
-        foreach(string member; channelDesc.members)
-        {
-            if(member == username)
-            {
-                // Remove ourselves from the channel
-                channelDesc.members.linearRemoveElement(username);
+        // TODO: Run any policies here
 
-                // TODO: Run notification hooks here on the server
+        // If present, then leave
+        //
+        // Return value is whether or not
+        // removal succeeded
+        return channelDesc.removeMember(username);
 
-                return true;
-            }
-        }
-
-        // If we were NOT present then that's an error
-        return false;
+        // TODO: Run notification hooks here on the server
     }
 }
 
