@@ -203,7 +203,7 @@ public final class ChannelManager
         logger.dbg("Limit: ", limit);
 
         // Get the channels
-        string[] channels = this.channels.keys()[offset..upperBound];
+        string[] channels = this.channels.keys()[offset..upperBound].dup;
        
         // Unlock channels map
         this.channelsLock.unlock();        
