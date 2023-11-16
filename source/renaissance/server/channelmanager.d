@@ -110,6 +110,11 @@ public final class ChannelManager
     private this()
     {
         this.channelsLock = new Mutex();
+
+        // TODO: Disable later, this just adds some testing channels
+        // return ["#general", "#tomfoolery"];
+        channelCreate("#general");
+        channelCreate("#tomfoolery");
     }
 
     public static ChannelManager create(Server server)

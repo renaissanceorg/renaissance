@@ -7,6 +7,7 @@ import std.algorithm : canFind;
 import renaissance.exceptions;
 import renaissance.connection;
 import renaissance.logging;
+import renaissance.server.channelmanager;
 
 /** 
  * Represents an instance of the daemon which manages
@@ -26,12 +27,22 @@ public class Server
     // TODO: volatility
     private bool isRunning = false;
 
-    // TODO: Add constructor
+    private ChannelManager channelManager;
+
+    // TODO: Some sendq/recq mechanism with messages or something
+    // ... should be placed here
+
+    /** 
+     * Constructs a new server
+     */
     this()
     {
         /* Initialize all mutexes */
         this.listenerQLock = new Mutex();
         this.connectionQLock = new Mutex();
+
+        /* Initialize the channel management sub-system */
+        this.channelManager = ChannelManager.create(this);
     }
 
 
@@ -187,8 +198,7 @@ public class Server
     public string[] getChannelNames(ulong offset, ubyte limit)
     {
         // TODO: Implement me
-
-        return ["#general", "#tomfoolery"];
+        return this.channelManager.getChannelNames(offset, limit);
     }
 }
 
