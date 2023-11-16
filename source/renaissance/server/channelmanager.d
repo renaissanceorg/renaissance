@@ -189,7 +189,7 @@ public final class ChannelManager
 
         // Adjust offset if it overshoots available
         // items
-        if(!(offset <= this.channels.length))
+        if(!(offset < this.channels.length))
         {
             offset = 0;
         }
