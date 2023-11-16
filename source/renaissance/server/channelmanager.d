@@ -199,7 +199,7 @@ public final class ChannelManager
 
         if(upperBound >= this.channels.keys().length)
         {
-            upperBound = this.channels.keys().length-1;
+            upperBound = this.channels.keys().length;
         }
 
         logger.dbg("Upper bound (after): ", upperBound);
