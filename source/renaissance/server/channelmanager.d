@@ -182,14 +182,6 @@ public final class ChannelManager
         // Lock channels map
         this.channelsLock.lock();
 
-        // TODO: Move lock
-        // On exit
-        scope(exit)
-        {
-            // Unlock channels map
-            this.channelsLock.unlock();
-        }
-
         // TODO: Implement offset and limit
 
         // Adjust offset if it overshoots available
@@ -210,7 +202,11 @@ public final class ChannelManager
         logger.dbg("Upper bound (after): ", upperBound);
         logger.dbg("Limit: ", limit);
 
+        // Get the channels
         string[] channels = this.channels.keys()[offset..upperBound];
+       
+        // Unlock channels map
+        this.channelsLock.unlock();        
 
         return channels;
     }
