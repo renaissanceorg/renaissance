@@ -200,6 +200,11 @@ public class Server
         // TODO: Implement me
         return this.channelManager.getChannelNames(offset, limit);
     }
+
+    public ChannelManager getChannelManager()
+    {
+        return this.channelManager;
+    }
 }
 
 version(unittest)
