@@ -93,6 +93,16 @@ public struct Channel
             return false;
         }
     }
+
+    public string[] getMembers()
+    {
+        string[] arrCopy;
+        foreach(string member; this.members)
+        {
+            arrCopy ~= member;
+        }
+        return arrCopy;
+    }
 }
 
 public final class ChannelManager
@@ -244,6 +254,22 @@ public final class ChannelManager
         return channelDesc.addMember(username);
 
         // TODO: Run notification hooks here on the server
+    }
+
+    public bool membershipList(string channel, ref string[] membersList)
+    {
+        // Get the channel, check for our own membership
+        Channel* channelDesc = channelGet(channel);
+
+        // If not found, then that's an error
+        if(channelDesc is null)
+        {
+            return false;
+        }
+
+        // If found, get the members
+        membersList = channelDesc.getMembers();
+        return true;
     }
 
     public bool membershipLeave(string channel, string username)
