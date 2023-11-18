@@ -113,6 +113,9 @@ public class Connection : Thread
      */
     private TaggedMessage handle(TaggedMessage incomingMessage)
     {
+        // TODO: In future this decoder, surely, should be idk
+        // ... in davinci as in stateful encoder/decoder
+        // ... reply-generator
         logger.dbg("Examining message '"~incomingMessage.toString()~"' ...");
 
         byte[] payload = incomingMessage.getPayload();
@@ -121,13 +124,15 @@ public class Connection : Thread
         logger.dbg("Incoming message: "~baseMessage.getCommand().toString());
         
         logger.dbg("BaseMessage type: ", baseMessage.getMessageType());
+        CommandType incomingCommandType = baseMessage.getCommandType();
+        logger.dbg("Incoming CommandType: ", incomingCommandType);
 
         BaseMessage response;
         MessageType mType;
         Command responseCommand;
         CommandType responseType;
 
-        if(baseMessage.getCommandType() == CommandType.NOP_COMMAND)
+        if(incomingCommandType == CommandType.NOP_COMMAND)
         {
             import davinci.c2s.test;
             logger.dbg("We got a NOP");
@@ -138,7 +143,7 @@ public class Connection : Thread
             responseCommand = nopMessage;
         }
         // Handle authentication request
-        else if(baseMessage.getCommandType() == CommandType.AUTH_COMMAND)
+        else if(incomingCommandType == CommandType.AUTH_COMMAND)
         {
             import davinci.c2s.auth : AuthMessage, AuthResponse;
 
@@ -160,7 +165,7 @@ public class Connection : Thread
             responseCommand = authResp;
         }
         // Handle channel list requests
-        else if(baseMessage.getCommandType() == CommandType.CHANNELS_ENUMERATE_REQ)
+        else if(incomingCommandType == CommandType.CHANNELS_ENUMERATE_REQ)
         {
             import davinci.c2s.channels : ChannelEnumerateRequest, ChannelEnumerateReply;
 
@@ -175,12 +180,48 @@ public class Connection : Thread
             responseType = CommandType.CHANNELS_ENUMERATE_REP;
             responseCommand = chanEnumRep;
         }
+        // Handle channel joins
+        else if(incomingCommandType == CommandType.MEMBERSHIP_JOIN)
+        {
+            import davinci.c2s.channels : ChannelMembership;
+            import renaissance.server.channelmanager : ChannelManager, Channel;
+
+            ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
+            string channel = chanMemReq.getChannel();
+
+            // TODO: Choose whether to allow listing if joined or not here and set
+            // ... the status accordingly
+
+            // Obtain the current members
+            ChannelManager chanMan = this.associatedServer.getChannelManager();
+            string[] currentMembers;
+            
+            // TODO: Handle return value
+            bool status = chanMan.membershipList(channel, currentMembers);
+            chanMemReq.listReplyGood(currentMembers);
+
+            mType = MessageType.CLIENT_TO_SERVER;
+            responseType = CommandType.MEMBERSHIP_LIST_REP;
+            responseCommand = chanMemReq;
+        }
+        
         // Unsupported type for server
         else
         {
+            import davinci.c2s.generic : UnknownCommandReply;
+            import std.conv : to;
             logger.warn("Received unsupported message type", baseMessage);
 
             // TODO: Generate error here
+
+        
+            UnknownCommandReply unknownCmdReply = new UnknownCommandReply("Command with type number: "~to!(string)(cast(ulong)incomingCommandType));
+
+            mType = MessageType.CLIENT_TO_SERVER;
+            responseType = CommandType.UNKNOWN_COMMAND;
+            responseCommand = unknownCmdReply;
+
+            logger.warn("We have generated err: ", responseCommand);
         }
 
         // Generate response
