@@ -215,7 +215,7 @@ version(unittest)
     // TODO: Building a testing client with the imports below
     import std.socket;
     import tristanable.manager;
-    import tristanable.queue;
+    // import tristanable.queue;
     import tristanable.encoding;
     import core.thread;
 
