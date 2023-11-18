@@ -22,6 +22,7 @@ public struct User
     this(string username)
     {
         this.lock = new Mutex();
+        setUsername(username);
     }
 
     // TODO: Disallow parameter less construction?
