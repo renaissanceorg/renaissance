@@ -102,7 +102,7 @@ public class Connection : Thread
 
     // FIXME: These should be part of the auth details
     // ... associated with this user
-    string myUsername = "tristan";
+    string myUsername = "bababooey";
 
     /** 
      * Given a `TaggedMessage` this method will decode
@@ -153,6 +153,9 @@ public class Connection : Thread
 
             AuthMessage authMessage = cast(AuthMessage)baseMessage.getCommand();
             bool status = this.associatedServer.attemptAuth(authMessage.getUsername(), authMessage.getPassword());
+
+            // TODO: This is just for testing now - i intend to have a nice auth manager
+            this.myUsername = authMessage.getUsername();
             
             AuthResponse authResp = new AuthResponse();
             if(status)
@@ -208,6 +211,8 @@ public class Connection : Thread
             import davinci.c2s.channels : ChannelMembership;
             import renaissance.server.channelmanager : ChannelManager, Channel;
 
+            logger.error("HALO");
+
             ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
             string channel = chanMemReq.getChannel();
 
@@ -217,13 +222,31 @@ public class Connection : Thread
             
             // TODO: Handle return value
             bool status = chanMan.membershipList(channel, currentMembers);
+            logger.dbg("Current members of '"~channel~"': ", currentMembers);
             chanMemReq.listReplyGood(currentMembers);
 
             mType = MessageType.CLIENT_TO_SERVER;
             responseType = CommandType.MEMBERSHIP_LIST_REP;
             responseCommand = chanMemReq;
         }
-        
+        // Handle channel leaves
+        else if(incomingCommandType == CommandType.MEMBERSHIP_LEAVE)
+        {
+            import davinci.c2s.channels : ChannelMembership;
+            import renaissance.server.channelmanager : ChannelManager, Channel;
+
+            ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
+            string channel = chanMemReq.getChannel();
+
+            // Join the channel
+            ChannelManager chanMan = this.associatedServer.getChannelManager();
+            bool status = chanMan.membershipLeave(channel, this.myUsername); // TODO: Handle return value
+            chanMemReq.replyGood();
+
+            mType = MessageType.CLIENT_TO_SERVER;
+            responseType = CommandType.MEMBERSHIP_LEAVE_REP;
+            responseCommand = chanMemReq;
+        }
         // Unsupported type for server
         else
         {
