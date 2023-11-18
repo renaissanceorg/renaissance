@@ -46,21 +46,37 @@ public struct User
 
         return true;
     }
+
+    public string getUsername()
+    {
+        string usernameCpy;
+
+        // Lock
+        this.lock.lock();
+
+        // Get the username
+        usernameCpy = this.username;
+
+        // Unlock
+        this.lock.unlock();
+
+        return usernameCpy;
+    }
     
     public Status getStatus()
     {
-        Status status;
+        Status statusCpy;
 
         // Lock
         this.lock.lock();
 
         // Get the status
-        status = this.status;
+        statusCpy = this.status;
 
         // Unlock
         this.lock.unlock();
 
-        return status;
+        return statusCpy;
     }
 }
 
@@ -68,5 +84,10 @@ public struct User
 unittest
 {
     User u = User("deavmi");
+    assert(u.getUsername(), "deavmi");
+
+    // Change the username
+    u.setUsername("gustav");
+    assert(u.getUsername(), "gustav");
     
 }
