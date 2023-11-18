@@ -100,6 +100,10 @@ public class Connection : Thread
         }
     }
 
+    // FIXME: These should be part of the auth details
+    // ... associated with this user
+    string myUsername = "tristan";
+
     /** 
      * Given a `TaggedMessage` this method will decode
      * it into a Davinci `BaseMessage`, determine the
@@ -189,8 +193,23 @@ public class Connection : Thread
             ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
             string channel = chanMemReq.getChannel();
 
-            // TODO: Choose whether to allow listing if joined or not here and set
-            // ... the status accordingly
+            // Join the channel
+            ChannelManager chanMan = this.associatedServer.getChannelManager();
+            bool status = chanMan.membershipJoin(channel, this.myUsername); // TODO: Handle return value
+            chanMemReq.replyGood();
+
+            mType = MessageType.CLIENT_TO_SERVER;
+            responseType = CommandType.MEMBERSHIP_JOIN_REP;
+            responseCommand = chanMemReq;
+        }
+        // Handle channel membership requests
+        else if(incomingCommandType == CommandType.MEMBERSHIP_LIST)
+        {
+            import davinci.c2s.channels : ChannelMembership;
+            import renaissance.server.channelmanager : ChannelManager, Channel;
+
+            ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
+            string channel = chanMemReq.getChannel();
 
             // Obtain the current members
             ChannelManager chanMan = this.associatedServer.getChannelManager();
