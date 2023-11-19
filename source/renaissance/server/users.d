@@ -177,7 +177,7 @@ public class AuthManager
         bool status;
 
         User potentialUser = User("");
-        status = this.provider.authenticate(username, password, potentialUser);
+        status = this.provider.authenticate(username, password);
         if(status)
         {
             logger.info("Authenticated user '"~username~"'");
