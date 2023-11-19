@@ -155,7 +155,8 @@ public class AuthManager
         this.provider = provider;
     }
 
-    private User* getUser(string username)
+    // NOTE: Don't try de-allocate it, smart ass
+    public User* getUser(string username)
     {
         User* foundUser;
 
@@ -194,6 +195,8 @@ public class AuthManager
         // Unlock
         this.usersLock.unlock();
     }
+
+    
 
     public bool authenticate(string username, string password)
     {
