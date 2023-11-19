@@ -101,7 +101,6 @@ public class DummyProvider : AuthProvider
 {
     public bool authenticate(string username, string password)
     {
-        user = User(username);
         return true;
     }
 }
