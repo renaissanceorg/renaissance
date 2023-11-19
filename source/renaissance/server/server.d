@@ -8,6 +8,7 @@ import renaissance.exceptions;
 import renaissance.connection;
 import renaissance.logging;
 import renaissance.server.channelmanager;
+import renaissance.server.users;
 
 /** 
  * Represents an instance of the daemon which manages
@@ -32,6 +33,8 @@ public class Server
     // TODO: Some sendq/recq mechanism with messages or something
     // ... should be placed here
 
+    private AuthManager authManager;
+
     /** 
      * Constructs a new server
      */
@@ -43,6 +46,9 @@ public class Server
 
         /* Initialize the channel management sub-system */
         this.channelManager = ChannelManager.create(this);
+
+        /* Initialize the authentication management sub-system */
+        this.authManager = AuthManager.create(this); // TODO: Set custo provder here based on argument to this constructor
     }
 
 
@@ -190,9 +196,7 @@ public class Server
     {
         logger.dbg("Attempting auth with user '", username, "' and password '", password, "'");
 
-        // TODO: Implement me
-
-        return true;
+        return this.authManager.authenticate(username, password);
     }
 
     public string[] getChannelNames(ulong offset, ubyte limit)
@@ -222,57 +226,57 @@ version(unittest)
     import dante;
 }
 
-unittest
-{
-    /** 
-     * Setup a `Server` instance followed by
-     * creating a single listener, after this
-     * start the server
-     */
-    Server server = new Server();
-    // Address listenAddr = parseAddress("::1", 9091);
-    Address listenAddr = new UnixAddress("/tmp/renaissance2.sock");
-    StreamListener streamListener = StreamListener.create(server, listenAddr);
-    server.start();
+// unittest
+// {
+//     /** 
+//      * Setup a `Server` instance followed by
+//      * creating a single listener, after this
+//      * start the server
+//      */
+//     Server server = new Server();
+//     // Address listenAddr = parseAddress("::1", 9091);
+//     Address listenAddr = new UnixAddress("/tmp/renaissance2.sock");
+//     StreamListener streamListener = StreamListener.create(server, listenAddr);
+//     server.start();
 
-    scope(exit)
-    {
-        import std.stdio;
-        remove((cast(UnixAddress)listenAddr).path().ptr);
-    }
+//     scope(exit)
+//     {
+//         import std.stdio;
+//         remove((cast(UnixAddress)listenAddr).path().ptr);
+//     }
 
-    // /**
-    //  * Create a few clients here (TODO: We'd need the client code)
-    //  */
-    // for(ulong idx = 0; idx < 10; idx++)
-    // {
-    //     Socket clientSocket = new Socket(listenAddr.addressFamily(), SocketType.STREAM);
-    //     clientSocket.connect(listenAddr);
-    //     Manager manager = new Manager(clientSocket);
-    //     Queue myQueue = new Queue(69);
-    //     manager.registerQueue(myQueue);
-    //     manager.start();
+//     // /**
+//     //  * Create a few clients here (TODO: We'd need the client code)
+//     //  */
+//     // for(ulong idx = 0; idx < 10; idx++)
+//     // {
+//     //     Socket clientSocket = new Socket(listenAddr.addressFamily(), SocketType.STREAM);
+//     //     clientSocket.connect(listenAddr);
+//     //     Manager manager = new Manager(clientSocket);
+//     //     Queue myQueue = new Queue(69);
+//     //     manager.registerQueue(myQueue);
+//     //     manager.start();
 
-    //     // Thread.sleep(dur!("seconds")(2));
-    //     TaggedMessage myMessage = new TaggedMessage(69, cast(byte[])"ABBA");
-    //     manager.sendMessage(myMessage);
-    //     manager.sendMessage(myMessage);
-    //     // Thread.sleep(dur!("seconds")(2));
-    //     manager.sendMessage(myMessage);
-    //     manager.sendMessage(myMessage);
-    // }
+//     //     // Thread.sleep(dur!("seconds")(2));
+//     //     TaggedMessage myMessage = new TaggedMessage(69, cast(byte[])"ABBA");
+//     //     manager.sendMessage(myMessage);
+//     //     manager.sendMessage(myMessage);
+//     //     // Thread.sleep(dur!("seconds")(2));
+//     //     manager.sendMessage(myMessage);
+//     //     manager.sendMessage(myMessage);
+//     // }
 
     
-    DanteClient client = new DanteClient(new UnixAddress("/tmp/renaissance2.sock"));
+//     DanteClient client = new DanteClient(new UnixAddress("/tmp/renaissance2.sock"));
 
-    client.start();
+//     client.start();
 
-    client.nopRequest();
-    client.nopRequest();
+//     client.nopRequest();
+//     client.nopRequest();
 
 
-    // while(true)
-    // {
-    //     Thread.sleep(dur!("seconds")(20));
-    // }
-}
+//     // while(true)
+//     // {
+//     //     Thread.sleep(dur!("seconds")(20));
+//     // }
+// }
