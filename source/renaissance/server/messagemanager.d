@@ -1,12 +1,28 @@
 module renaissance.server.messagemanager;
 
 import renaissance.server.server : Server;
+import std.container.slist : SList;
+
+public struct Message
+{
+    private string destination;
+    private string message;
+    private string from;
+
+    this(string destination, string from, string message)
+    {
+        this.destination = destination;
+        this.from = from;
+        this.message = message;
+    }
+}
 
 public enum QUEUE_DEFAULT_SIZE = 100;
 
 public class Queue
 {
     private size_t maxSize;
+    private SList!(Message) queue;
 
     public this(size_t maxSize = QUEUE_DEFAULT_SIZE)
     {
