@@ -94,12 +94,12 @@ unittest
 
 public interface AuthProvider
 {
-    public bool authenticate(string username, string password, ref User user);
+    public bool authenticate(string username, string password);
 }
 
 public class DummyProvider : AuthProvider
 {
-    public bool authenticate(string username, string password, ref User user)
+    public bool authenticate(string username, string password)
     {
         user = User(username);
         return true;
