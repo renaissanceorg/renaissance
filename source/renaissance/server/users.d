@@ -170,15 +170,40 @@ public class AuthManager
         return foundUser;
     }
 
+    private void addUser(string username)
+    {
+        // Lock
+        this.usersLock.lock();
+
+        // Create the user and insert it
+        User* newUser = new User(username);
+        this.users[username] = newUser;
+
+        // Unlock
+        this.usersLock.unlock();
+    }
+
+    private void removeUser(string username)
+    {
+        // Lock
+        this.usersLock.lock();
+
+        // Remove the user
+        this.users.remove(username);
+
+        // Unlock
+        this.usersLock.unlock();
+    }
+
     public bool authenticate(string username, string password)
     {
         logger.dbg("Authentication request for user '"~username~"' with password '"~password~"'");
         bool status;
 
-        User potentialUser = User("");
         status = this.provider.authenticate(username, password);
         if(status)
         {
+            addUser(username);
             logger.info("Authenticated user '"~username~"'");
         }
         else
