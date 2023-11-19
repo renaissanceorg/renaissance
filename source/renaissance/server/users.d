@@ -147,7 +147,7 @@ public class AuthManager
      * ChannelManager code to do that
      * 
      */
-    private User[string] users;
+    private User*[string] users;
     private Mutex usersLock;
 
     private this(AuthProvider provider)
@@ -163,7 +163,7 @@ public class AuthManager
         // Lock
         this.usersLock.lock();
 
-        foundUser = username in this.users;
+        foundUser = this.users[username];
 
         // Unlock
         this.usersLock.unlock();
