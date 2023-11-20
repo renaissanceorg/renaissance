@@ -6,6 +6,7 @@ import renaissance.server;
 import river.core;
 import tristanable;
 import renaissance.logging;
+import renaissance.server.messagemanager : MessageManager, Message;
 
 public class Connection : Thread
 {
@@ -104,6 +105,11 @@ public class Connection : Thread
     // ... associated with this user
     string myUsername = "bababooey";
 
+    private bool isAuthd()
+    {
+        return myUsername.length != 0;
+    }
+
     /** 
      * Given a `TaggedMessage` this method will decode
      * it into a Davinci `BaseMessage`, determine the
@@ -135,6 +141,7 @@ public class Connection : Thread
         MessageType mType;
         Command responseCommand;
         CommandType responseType;
+        Status responseStatus;
 
         if(incomingCommandType == CommandType.NOP_COMMAND)
         {
@@ -155,12 +162,15 @@ public class Connection : Thread
             bool status = this.associatedServer.attemptAuth(authMessage.getUsername(), authMessage.getPassword());
 
             // TODO: This is just for testing now - i intend to have a nice auth manager
-            this.myUsername = authMessage.getUsername();
+            
             
             AuthResponse authResp = new AuthResponse();
             if(status)
             {
                 authResp.good();
+
+                // Save username
+                this.myUsername = authMessage.getUsername();
             }
             else
             {
@@ -174,6 +184,11 @@ public class Connection : Thread
         // Handle channel list requests
         else if(incomingCommandType == CommandType.CHANNELS_ENUMERATE_REQ)
         {
+            // FIXME: Figure out how we want to do auth checks
+            if(!isAuthd())
+            {
+
+            }
             import davinci.c2s.channels : ChannelEnumerateRequest, ChannelEnumerateReply;
 
             ChannelEnumerateRequest chanEnumReq = cast(ChannelEnumerateRequest)baseMessage.getCommand();
@@ -246,6 +261,32 @@ public class Connection : Thread
             mType = MessageType.CLIENT_TO_SERVER;
             responseType = CommandType.MEMBERSHIP_LEAVE_REP;
             responseCommand = chanMemReq;
+        }
+        // Handle message sending
+        else if(incomingCommandType == CommandType.CHANNEL_SEND_MESSAGE)
+        {
+            import davinci.c2s.channels : ChannelMessage;
+            import renaissance.server.channelmanager : ChannelManager, Channel;
+
+            ChannelMessage chanMesg = cast(ChannelMessage)baseMessage.getCommand();
+            
+            // TODO: Get channel, lookup and do permission checks
+
+            // TODO: Use a messagemanager thing here
+            MessageManager mesgMan = this.associatedServer.getMessageManager();
+
+
+            // TODO: Check multiple recipients
+            string[] recipients = chanMesg.getRecipients();
+            foreach(string to; recipients)
+            {
+                Message message;
+                message.setBody(chanMesg.getMessage());
+                message.setFrom(chanMesg.getFrom());
+                message.setDestination(to);
+                mesgMan.sendq(message);
+            }
+
         }
         // Unsupported type for server
         else
