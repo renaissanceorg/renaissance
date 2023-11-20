@@ -16,6 +16,21 @@ public struct Message
         this.from = from;
         this.message = message;
     }
+
+    public void setBody(string message)
+    {
+        this.message = message;
+    }
+
+    public void setFrom(string from)
+    {
+        this.from = from;
+    }
+
+    public void setDestination(string destination)
+    {
+        this.destination = destination;
+    }
 }
 
 public enum QUEUE_DEFAULT_SIZE = 100;
@@ -64,7 +79,7 @@ public interface MessageDeliveryTransport
 // ... so forth)
 public class MessageManager
 {
-    private Server server;
+    private MessageDeliveryTransport transport;
 
     private Queue sendQueue;
     private Queue receiveQueue;
@@ -86,10 +101,10 @@ public class MessageManager
 
     }
     
-    public static MessageManager create(Server server)
+    public static MessageManager create(MessageDeliveryTransport transport)
     {
         MessageManager manager = new MessageManager();
-        manager.server = server;
+        manager.transport = transport;
 
 
         return manager;
