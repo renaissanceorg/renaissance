@@ -289,7 +289,12 @@ public class Connection : Thread
                 mesgMan.sendq(message);
             }
 
+            // TODO: Set this ONLY if we succeeeded in delivery
+            chanMesg.messageDelivered();
 
+            mType = MessageType.CLIENT_TO_SERVER;
+            responseType = CommandType.SEND_CHANNEL_MESG_REP;
+            responseCommand = chanMesg;
         }
         // Unsupported type for server
         else
