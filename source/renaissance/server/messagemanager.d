@@ -3,6 +3,7 @@ module renaissance.server.messagemanager;
 import renaissance.server.server : Server;
 import std.container.slist : SList;
 import core.sync.mutex : Mutex;
+import renaissance.logging;
 
 public struct Message
 {
@@ -93,7 +94,7 @@ public class MessageManager
 
     public void sendq(Message message)
     {
-
+        logger.info("Received message for sending: ", message);
     }
 
     public void recvq(Message message)
