@@ -282,10 +282,13 @@ public class Connection : Thread
             {
                 Message message;
                 message.setBody(chanMesg.getMessage());
-                message.setFrom(chanMesg.getFrom());
+                message.setFrom(this.myUsername);
                 message.setDestination(to);
+
+                logger.dbg("Sending message: ", message);
                 mesgMan.sendq(message);
             }
+
 
         }
         // Unsupported type for server
@@ -306,6 +309,9 @@ public class Connection : Thread
 
             logger.warn("We have generated err: ", responseCommand);
         }
+
+        // Ensure a response was created
+        // assert(responseCommand !is null);
 
         // Generate response
         response = new BaseMessage(mType, responseType, responseCommand);
