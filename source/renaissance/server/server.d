@@ -9,13 +9,14 @@ import renaissance.connection;
 import renaissance.logging;
 import renaissance.server.channelmanager;
 import renaissance.server.users;
+import renaissance.server.messagemanager;
 
 /** 
  * Represents an instance of the daemon which manages
  * all listeners attached to it, server state and
  * message processing
  */
-public class Server
+public class Server : MessageDeliveryTransport
 {
     // TODO: array of listeners
     private SList!(Listener) listenerQ;
@@ -35,6 +36,8 @@ public class Server
 
     private AuthManager authManager;
 
+    private MessageManager messageManager;
+
     /** 
      * Constructs a new server
      */
@@ -49,6 +52,9 @@ public class Server
 
         /* Initialize the authentication management sub-system */
         this.authManager = AuthManager.create(this); // TODO: Set custo provder here based on argument to this constructor
+
+        /* Initialize the message management sub-system */
+        this.messageManager = MessageManager.create(this);
     }
 
 
@@ -208,6 +214,29 @@ public class Server
     public ChannelManager getChannelManager()
     {
         return this.channelManager;
+    }
+
+    public MessageManager getMessageManager()
+    {
+        return this.messageManager;
+    }
+
+    // On incoming message
+    public bool onIncoming(Message latest, Queue from)
+    {
+        // TODO: Implement me
+        logger.info("Incoming stub with latest ", latest, "from queue ", from);
+        
+        return true;
+    }
+
+    // On message that must be egressed
+    public bool onOutgoing(Message latest, Queue from)
+    {
+        // TODO: Implement me
+        logger.info("Outgoing stub with latest ", latest, "from queue ", from);
+
+        return true;
     }
 }
 
