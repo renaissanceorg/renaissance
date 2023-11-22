@@ -6,7 +6,7 @@
 	"dependencies": {
 		"dante": ">=0.2.2",
 		"davinci": ">=0.1.11",
-		"gogga": ">=2.1.18",
+		"gogga": ">=2.2.1",
 		"lumars": "~>1.11.0",
 		"river": ">=0.3.7",
 		"tristanable": ">=4.0.0-beta"
