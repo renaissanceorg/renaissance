@@ -49,7 +49,7 @@ public enum PolicyDecision
  * the queue, along with the queue itself
  * and return a verdict based on it
  */
-public alias PolicyFunction = PolicyDecision function(Message, Queue);
+public alias PolicyFunction = PolicyDecision function(Message, QueueIntrospective);
 
 /** 
  * NOP policy does nothing and always
@@ -58,7 +58,7 @@ public alias PolicyFunction = PolicyDecision function(Message, Queue);
  *
  * Returns: `PolicyDecision.ACCEPT` always
  */
-public PolicyDecision nop(Message, Queue)
+public PolicyDecision nop(Message, QueueIntrospective)
 {
     return PolicyDecision.ACCEPT;
 }
@@ -76,9 +76,9 @@ public interface QueueIntrospective
 }
 
 // TODO: Templatize in the future on the T element type
-public class Queue
+public class Queue : QueueIntrospective
 {
-    private size_t maxSize;
+    private size_t maxSize; // TODO: Remove this and make a policy which respects it
     private PolicyFunction policy;
     private DList!(Message) queue;
     private Mutex lock;
@@ -125,6 +125,23 @@ public class Queue
     
         // Enqueue
         this.queue.insertAfter(this.queue[], message);
+    }
+
+    private void lockQueue()
+    {
+        // Lock the queue
+        this.lock.lock();
+    }
+
+    private void unlockQueue()
+    {
+        // Unlock the queue
+        return this.lock.unlock();
+    }
+
+    private DList!(Message) getQueue()
+    {
+        return this.queue;
     }
 }
 
