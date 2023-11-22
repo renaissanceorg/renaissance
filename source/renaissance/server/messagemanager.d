@@ -296,15 +296,10 @@ public class MessageManager
     private this()
     {
         // Initialize the queues (send+receive)
-        // this.sendQueue = new Queue();
-        // this.receiveQueue = new Queue();
-
         this.smrtPol = SmartPolicy(QUEUE_DEFAULT_SIZE);
         this.sendQueue = new Queue(&smrtPol.enact);
-        // this.sendQueue.setEnqueueHook(toDelegate(&dummyHook));
         this.sendQueue.setEnqueueHook(&this.stubDeliverSend);
         this.receiveQueue = new Queue(&smrtPol.enact);
-        // this.receiveQueue.setEnqueueHook(toDelegate(&dummyHook));
         this.receiveQueue.setEnqueueHook(&this.stubDeliverRecv);
     }
 
