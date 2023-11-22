@@ -169,10 +169,13 @@ public interface QueueIntrospective
 {
     protected void lockQueue();
     protected ref DList!(Message) getQueue();  // NOTE: TO not copy the struct, also could allow replacing whole item (NOT GOOD)
+                                                // NOTE: We should not, because honetslu we have a lock so nothing CAN change
+                                                // AND we should NEVER change anyuthing in the queue
+                                                // TODO (Rather): expose a set of common things
     protected void unlockQueue();
 }
 
-public enum QUEUE_DEFAULT_SIZE = 0;
+public enum QUEUE_DEFAULT_SIZE = 100;
 
 // TODO: Templatize in the future on the T element type
 public class Queue : QueueIntrospective
