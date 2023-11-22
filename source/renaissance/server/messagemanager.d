@@ -232,8 +232,10 @@ public class MessageManager
     private this()
     {
         // Initialize the queues (send+receive)
-        this.sendQueue = new Queue();
-        this.receiveQueue = new Queue();
+        // this.sendQueue = new Queue();
+        // this.receiveQueue = new Queue();
+        this.sendQueue = Queue.makeSmart();
+        this.receiveQueue = Queue.makeSmart();
     }
 
     public void sendq(Message message)
