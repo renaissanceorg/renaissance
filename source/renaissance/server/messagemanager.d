@@ -88,9 +88,17 @@ public PolicyDecision nop(Message, QueueIntrospective)
     return PolicyDecision.ACCEPT;
 }
 
+
+
 public struct SmartPolicy
 {
     private size_t maxSize;
+
+    public enum Mode : ubyte
+    {
+        TAIL_DROP_ON_FULL = 0,
+        DROP_INCOMING_ON_FULL = 1
+    }
 
     @disable
     private this();
@@ -98,23 +106,56 @@ public struct SmartPolicy
     this(size_t maxSize)
     {
         this.maxSize = maxSize;
+        logger.dbg("maxSize (init): ", this.maxSize);
+    }
+
+    private Mode mode;
+
+    private bool shouldTailDrop()
+    {
+        Mode dropMode = cast(Mode)( (cast(ubyte)this.mode) & 1 );
+
+        return dropMode == Mode.TAIL_DROP_ON_FULL;
     }
 
     public PolicyDecision enact(Message message, QueueIntrospective queue)
     {
-        // TODO: Implement me
-
         // Lock the queue
         queue.lockQueue();
 
-        // Obtain the queue
-        // TODO: Implement me
+        // On exit
+        scope(exit)
+        {
+            // Unlock the queue
+            queue.unlockQueue();
+        }
 
-        // Unlock the queue
-        queue.unlockQueue();
+        // If we have space
+        import std.range : walkLength;
+        size_t curLen = walkLength(queue.getQueue()[]);
+        logger.dbg("curLen:", curLen);
+        logger.dbg("curLen+1:", curLen+1);
+        logger.dbg("maxSize:", maxSize);
 
-
-        return PolicyDecision.ACCEPT;
+        // Is there space?
+        if(curLen+1 <= maxSize)
+        {
+            return PolicyDecision.ACCEPT;
+        }
+        // There is no space
+        else
+        {
+            // Drop tail on full
+            if(shouldTailDrop)
+            {
+                return PolicyDecision.DROP_TAIL;
+            }
+            // Drop incoming on full
+            else
+            {
+                return PolicyDecision.DROP_INCOMING;
+            }
+        }
     }
 
 }
@@ -127,11 +168,11 @@ public struct SmartPolicy
 public interface QueueIntrospective
 {
     protected void lockQueue();
-    protected DList!(Message) getQueue();
+    protected ref DList!(Message) getQueue();  // NOTE: TO not copy the struct, also could allow replacing whole item (NOT GOOD)
     protected void unlockQueue();
 }
 
-public enum QUEUE_DEFAULT_SIZE = 100;
+public enum QUEUE_DEFAULT_SIZE = 0;
 
 // TODO: Templatize in the future on the T element type
 public class Queue : QueueIntrospective
@@ -211,7 +252,7 @@ public class Queue : QueueIntrospective
         return this.lock.unlock();
     }
 
-    protected DList!(Message) getQueue()
+    protected ref DList!(Message) getQueue()
     {
         return this.queue;
     }
@@ -238,13 +279,18 @@ public class MessageManager
     private Queue sendQueue;
     private Queue receiveQueue;
 
+    // This is just for testing
+    private SmartPolicy smrtPol;
+
     private this()
     {
         // Initialize the queues (send+receive)
         // this.sendQueue = new Queue();
         // this.receiveQueue = new Queue();
-        this.sendQueue = Queue.makeSmart();
-        this.receiveQueue = Queue.makeSmart();
+
+        this.smrtPol = SmartPolicy(QUEUE_DEFAULT_SIZE);
+        this.sendQueue = new Queue(&smrtPol.enact);
+        this.receiveQueue = new Queue(&smrtPol.enact);
     }
 
     public void sendq(Message message)
