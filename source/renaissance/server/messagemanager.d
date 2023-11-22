@@ -363,3 +363,27 @@ unittest
     // It should have triggered the hook
     assert(touch);
 }
+
+unittest
+{
+    bool touch = false;
+    void dummyHook(Message, Queue)
+    {
+        touch = true;
+    }
+
+    PolicyDecision dummyPolicy(Message, Queue)
+    {
+        return PolicyDecision.DROP_INCOMING;
+    }
+
+    Queue queue = new Queue(cast(PolicyFunction)&dummyPolicy);
+    queue.setEnqueueHook(&dummyHook);
+
+    // Enqueue something
+    queue.enqueue(Message());
+
+    // It must have been dropped, therefore the
+    // ... hook should have never ran
+    assert(touch == false);
+}
