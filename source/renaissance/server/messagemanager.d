@@ -63,6 +63,18 @@ public PolicyDecision nop(Message, Queue)
     return PolicyDecision.ACCEPT;
 }
 
+/** 
+ * Defines the interface which policy
+ * functions can use in order to access
+ * the internals of a given queue
+ */
+public interface QueueIntrospective
+{
+    private void lockQueue();
+    private DList!(Message) getQueue();
+    private void unlockQueue();
+}
+
 // TODO: Templatize in the future on the T element type
 public class Queue
 {
