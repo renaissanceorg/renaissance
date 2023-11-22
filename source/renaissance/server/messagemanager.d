@@ -43,6 +43,14 @@ public enum PolicyDecision
     ACCEPT
 }
 
+/** 
+ * Describes a function which can be used
+ * for examining the latest item incoming
+ * the queue, along with the queue itself
+ * and return a verdict based on it
+ */
+public alias PolicyFunction = PolicyDecision function(Message, Queue);
+
 // TODO: Templatize in the future on the T element type
 public class Queue
 {
