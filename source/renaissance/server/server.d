@@ -242,6 +242,17 @@ public class Server : MessageDeliveryTransport
         // Lookup the user (destination)
         User* toUser = this.authManager.getUser(latest.getDestination());
 
+
+        if(fromUser == null)
+        {
+            // TODO: Handle this
+        }
+
+        if(toUser == null)
+        {
+            // TODO: Handle this
+        }
+
         return true;
     }
 }
