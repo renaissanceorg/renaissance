@@ -6,6 +6,19 @@ import renaissance.server;
 import river.core;
 import tristanable;
 import renaissance.logging;
+import renaissance.server.messagemanager : MessageManager, Message;
+
+
+import davinci.base.components : Validatable;
+
+import davinci.c2s.auth : AuthMessage, AuthResponse;
+import davinci.c2s.generic : UnknownCommandReply;
+
+import davinci.c2s.channels : ChannelEnumerateRequest, ChannelEnumerateReply, ChannelMembership, ChannelMessage;
+import davinci.c2s.test : NopMessage;
+import renaissance.server.channelmanager : ChannelManager, Channel;
+
+import std.conv : to;
 
 public class Connection : Thread
 {
@@ -104,6 +117,11 @@ public class Connection : Thread
     // ... associated with this user
     string myUsername = "bababooey";
 
+    private bool isAuthd()
+    {
+        return myUsername.length != 0;
+    }
+
     /** 
      * Given a `TaggedMessage` this method will decode
      * it into a Davinci `BaseMessage`, determine the
@@ -128,6 +146,7 @@ public class Connection : Thread
         logger.dbg("Incoming message: "~baseMessage.getCommand().toString());
         
         logger.dbg("BaseMessage type: ", baseMessage.getMessageType());
+        Command incomingCommand = baseMessage.getCommand();
         CommandType incomingCommandType = baseMessage.getCommandType();
         logger.dbg("Incoming CommandType: ", incomingCommandType);
 
@@ -135,136 +154,221 @@ public class Connection : Thread
         MessageType mType;
         Command responseCommand;
         CommandType responseType;
+        Status responseStatus;
 
-        if(incomingCommandType == CommandType.NOP_COMMAND)
+        /** 
+         * Perform validation before continueing
+         */
+        if(cast(Validatable)incomingCommand)
         {
-            import davinci.c2s.test;
-            logger.dbg("We got a NOP");
-            NopMessage nopMessage = cast(NopMessage)baseMessage.getCommand();
-
-            mType = MessageType.CLIENT_TO_SERVER;
-            responseType = CommandType.NOP_COMMAND;
-            responseCommand = nopMessage;
-        }
-        // Handle authentication request
-        else if(incomingCommandType == CommandType.AUTH_COMMAND)
-        {
-            import davinci.c2s.auth : AuthMessage, AuthResponse;
-
-            AuthMessage authMessage = cast(AuthMessage)baseMessage.getCommand();
-            bool status = this.associatedServer.attemptAuth(authMessage.getUsername(), authMessage.getPassword());
-
-            // TODO: This is just for testing now - i intend to have a nice auth manager
-            this.myUsername = authMessage.getUsername();
-            
-            AuthResponse authResp = new AuthResponse();
-            if(status)
+            Validatable validtabaleCommand = cast(Validatable)incomingCommand;
+            string reason;
+            if(!validtabaleCommand.validate(reason))
             {
-                authResp.good();
+                logger.error("Validation failed with reason: '", reason, "'");
+
+                
+                UnknownCommandReply unknownCmdReply = new UnknownCommandReply(reason);
+
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.UNKNOWN_COMMAND;
+                responseCommand = unknownCmdReply;
+
+                // TODO: Can we do this without gotos?
+                goto encode_n_send;
             }
-            else
+        }
+
+        /** 
+         * Handle the different types of commands
+         */
+        switch(incomingCommandType)
+        {
+            /** 
+             * Handle NOP commands
+             */
+            case CommandType.NOP_COMMAND:
             {
-                authResp.bad();
+                logger.dbg("We got a NOP");
+                NopMessage nopMessage = cast(NopMessage)baseMessage.getCommand();
+
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.NOP_COMMAND;
+                responseCommand = nopMessage;
+
+                break;
             }
+            /**
+             * Handle authentication request
+             */
+            case CommandType.AUTH_COMMAND:
+            {
+                AuthMessage authMessage = cast(AuthMessage)baseMessage.getCommand();
+                bool status = this.associatedServer.attemptAuth(authMessage.getUsername(), authMessage.getPassword());
 
-            mType = MessageType.CLIENT_TO_SERVER;
-            responseType = CommandType.AUTH_RESPONSE;
-            responseCommand = authResp;
-        }
-        // Handle channel list requests
-        else if(incomingCommandType == CommandType.CHANNELS_ENUMERATE_REQ)
-        {
-            import davinci.c2s.channels : ChannelEnumerateRequest, ChannelEnumerateReply;
+                // TODO: This is just for testing now - i intend to have a nice auth manager
+                
+                
+                AuthResponse authResp = new AuthResponse();
+                if(status)
+                {
+                    authResp.good();
 
-            ChannelEnumerateRequest chanEnumReq = cast(ChannelEnumerateRequest)baseMessage.getCommand();
-            ubyte limit = chanEnumReq.getLimit();
-            ulong offset = chanEnumReq.getOffset();
+                    // Save username
+                    this.myUsername = authMessage.getUsername();
+                }
+                else
+                {
+                    authResp.bad();
+                }
 
-            string[] channelNames = this.associatedServer.getChannelNames(offset, limit);
-            ChannelEnumerateReply chanEnumRep = new ChannelEnumerateReply(channelNames);
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.AUTH_RESPONSE;
+                responseCommand = authResp;
 
-            mType = MessageType.CLIENT_TO_SERVER;
-            responseType = CommandType.CHANNELS_ENUMERATE_REP;
-            responseCommand = chanEnumRep;
-        }
-        // Handle channel joins
-        else if(incomingCommandType == CommandType.MEMBERSHIP_JOIN)
-        {
-            import davinci.c2s.channels : ChannelMembership;
-            import renaissance.server.channelmanager : ChannelManager, Channel;
+                break;
+            }
+            /**
+             * Handle channel list requests
+             */
+            case CommandType.CHANNELS_ENUMERATE_REQ:
+            {
+                // FIXME: Figure out how we want to do auth checks
+                if(!isAuthd())
+                {
 
-            ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
-            string channel = chanMemReq.getChannel();
+                }
+                
+                ChannelEnumerateRequest chanEnumReq = cast(ChannelEnumerateRequest)baseMessage.getCommand();
+                ubyte limit = chanEnumReq.getLimit();
+                ulong offset = chanEnumReq.getOffset();
 
-            // Join the channel
-            ChannelManager chanMan = this.associatedServer.getChannelManager();
-            bool status = chanMan.membershipJoin(channel, this.myUsername); // TODO: Handle return value
-            chanMemReq.replyGood();
+                string[] channelNames = this.associatedServer.getChannelNames(offset, limit);
+                ChannelEnumerateReply chanEnumRep = new ChannelEnumerateReply(channelNames);
 
-            mType = MessageType.CLIENT_TO_SERVER;
-            responseType = CommandType.MEMBERSHIP_JOIN_REP;
-            responseCommand = chanMemReq;
-        }
-        // Handle channel membership requests
-        else if(incomingCommandType == CommandType.MEMBERSHIP_LIST)
-        {
-            import davinci.c2s.channels : ChannelMembership;
-            import renaissance.server.channelmanager : ChannelManager, Channel;
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.CHANNELS_ENUMERATE_REP;
+                responseCommand = chanEnumRep;
 
-            logger.error("HALO");
+                break;
+            }
+            /**
+             * Handle channel joins
+             */
+            case CommandType.MEMBERSHIP_JOIN:
+            {
+                ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
+                string channel = chanMemReq.getChannel();
 
-            ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
-            string channel = chanMemReq.getChannel();
+                // Join the channel
+                ChannelManager chanMan = this.associatedServer.getChannelManager();
+                bool status = chanMan.membershipJoin(channel, this.myUsername); // TODO: Handle return value
+                chanMemReq.replyGood();
 
-            // Obtain the current members
-            ChannelManager chanMan = this.associatedServer.getChannelManager();
-            string[] currentMembers;
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.MEMBERSHIP_JOIN_REP;
+                responseCommand = chanMemReq;
+
+                break;
+            }
+            /**
+             * Handle channel membership requests
+             */
+            case CommandType.MEMBERSHIP_LIST:
+            {
+                ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
+                string channel = chanMemReq.getChannel();
+
+                // Obtain the current members
+                ChannelManager chanMan = this.associatedServer.getChannelManager();
+                string[] currentMembers;
+                
+                // TODO: Handle return value
+                bool status = chanMan.membershipList(channel, currentMembers);
+                logger.dbg("Current members of '"~channel~"': ", currentMembers);
+                chanMemReq.listReplyGood(currentMembers);
+
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.MEMBERSHIP_LIST_REP;
+                responseCommand = chanMemReq;
+                
+                break;
+            }
+            /**
+             * Handle channel leaves
+             */
+            case CommandType.MEMBERSHIP_LEAVE:
+            {
+                ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
+                string channel = chanMemReq.getChannel();
+
+                // Join the channel
+                ChannelManager chanMan = this.associatedServer.getChannelManager();
+                bool status = chanMan.membershipLeave(channel, this.myUsername); // TODO: Handle return value
+                chanMemReq.replyGood();
+
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.MEMBERSHIP_LEAVE_REP;
+                responseCommand = chanMemReq;
+
+                break;
+            }
+            /**
+             * Handle message sending
+             */
+            case CommandType.CHANNEL_SEND_MESSAGE:
+            {
+                ChannelMessage chanMesg = cast(ChannelMessage)baseMessage.getCommand();
             
-            // TODO: Handle return value
-            bool status = chanMan.membershipList(channel, currentMembers);
-            logger.dbg("Current members of '"~channel~"': ", currentMembers);
-            chanMemReq.listReplyGood(currentMembers);
+                // TODO: Get channel, lookup and do permission checks
 
-            mType = MessageType.CLIENT_TO_SERVER;
-            responseType = CommandType.MEMBERSHIP_LIST_REP;
-            responseCommand = chanMemReq;
+                // TODO: Use a messagemanager thing here
+                MessageManager mesgMan = this.associatedServer.getMessageManager();
+
+
+                // TODO: Check multiple recipients
+                string[] recipients = chanMesg.getRecipients();
+                foreach(string to; recipients)
+                {
+                    Message message;
+                    message.setBody(chanMesg.getMessage());
+                    message.setFrom(this.myUsername);
+                    message.setDestination(to);
+
+                    logger.dbg("Sending message: ", message);
+                    mesgMan.sendq(message);
+                }
+
+                // TODO: Set this ONLY if we succeeeded in delivery
+                chanMesg.messageDelivered();
+
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.SEND_CHANNEL_MESG_REP;
+                responseCommand = chanMesg;
+
+                break;
+            }
+            /** 
+             * Anything else is an unknown
+             * command, therefore generate
+             * an error reply
+             */
+            default:
+            {
+                logger.warn("Received unsupported message type", baseMessage);
+            
+                UnknownCommandReply unknownCmdReply = new UnknownCommandReply("Command with type number: "~to!(string)(cast(ulong)incomingCommandType));
+
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.UNKNOWN_COMMAND;
+                responseCommand = unknownCmdReply;
+
+                logger.warn("We have generated err: ", responseCommand);
+                break;
+            }
         }
-        // Handle channel leaves
-        else if(incomingCommandType == CommandType.MEMBERSHIP_LEAVE)
-        {
-            import davinci.c2s.channels : ChannelMembership;
-            import renaissance.server.channelmanager : ChannelManager, Channel;
 
-            ChannelMembership chanMemReq = cast(ChannelMembership)baseMessage.getCommand();
-            string channel = chanMemReq.getChannel();
-
-            // Join the channel
-            ChannelManager chanMan = this.associatedServer.getChannelManager();
-            bool status = chanMan.membershipLeave(channel, this.myUsername); // TODO: Handle return value
-            chanMemReq.replyGood();
-
-            mType = MessageType.CLIENT_TO_SERVER;
-            responseType = CommandType.MEMBERSHIP_LEAVE_REP;
-            responseCommand = chanMemReq;
-        }
-        // Unsupported type for server
-        else
-        {
-            import davinci.c2s.generic : UnknownCommandReply;
-            import std.conv : to;
-            logger.warn("Received unsupported message type", baseMessage);
-
-            // TODO: Generate error here
-
-        
-            UnknownCommandReply unknownCmdReply = new UnknownCommandReply("Command with type number: "~to!(string)(cast(ulong)incomingCommandType));
-
-            mType = MessageType.CLIENT_TO_SERVER;
-            responseType = CommandType.UNKNOWN_COMMAND;
-            responseCommand = unknownCmdReply;
-
-            logger.warn("We have generated err: ", responseCommand);
-        }
+        encode_n_send:
 
         // Generate response
         response = new BaseMessage(mType, responseType, responseCommand);
