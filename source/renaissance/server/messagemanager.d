@@ -69,6 +69,7 @@ public class Queue
 
         // Apply queuing policy
         PolicyDecision decision = policyCheck();
+        logger.dbg("Queue decision: ", decision);
 
         // If we should tail-drop
         if(decision == PolicyDecision.DROP_TAIL)
@@ -92,7 +93,7 @@ public class Queue
         this.queue.insertAfter(this.queue[], message);
     }
 
-    private PolicyDecision policyCheck()
+    private PolicyDecision policyCheck() // NOTE: In future must use lock if decision requires anlysing internal queue
     {
         // TODO: Implement me
         return PolicyDecision.ACCEPT;
