@@ -309,9 +309,6 @@ public class MessageManager
 
         // Enqueue to send-q
         this.sendQueue.enqueue(message);
-
-        // Deliver
-        stubDeliverSend(message, this.sendQueue);
     }
 
     public void recvq(Message message)
@@ -320,9 +317,6 @@ public class MessageManager
 
         // Enqueue to recv-q
         this.receiveQueue.enqueue(message);
-
-        // Deliver
-        stubDeliverRecv(message, this.receiveQueue);
     }
 
     // NOTE: Stub delivery method - not smart in anyway
