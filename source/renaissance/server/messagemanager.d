@@ -95,11 +95,17 @@ public class MessageManager
     public void sendq(Message message)
     {
         logger.info("Received message for sending: ", message);
+
+        // Enqueue to send-q
+        this.sendQueue.enqueue(message);
     }
 
     public void recvq(Message message)
     {
+        logger.info("Received message for reception: ", message);
 
+        // Enqueue to recv-q
+        this.receiveQueue.enqueue(message);
     }
     
     public static MessageManager create(MessageDeliveryTransport transport)
