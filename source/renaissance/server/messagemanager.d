@@ -69,12 +69,12 @@ public enum PolicyDecision
 }
 
 /** 
- * Describes a function which can be used
+ * Describes a delegate which can be used
  * for examining the latest item incoming
  * the queue, along with the queue itself
  * and return a verdict based on it
  */
-public alias PolicyFunction = PolicyDecision function(Message, QueueIntrospective);
+public alias PolicyFunction = PolicyDecision delegate(Message, QueueIntrospective);
 
 /** 
  * NOP policy does nothing and always
@@ -86,6 +86,28 @@ public alias PolicyFunction = PolicyDecision function(Message, QueueIntrospectiv
 public PolicyDecision nop(Message, QueueIntrospective)
 {
     return PolicyDecision.ACCEPT;
+}
+
+public struct SmartPolicy
+{
+    private size_t maxSize;
+
+    @disable
+    private this();
+
+    this(size_t maxSize)
+    {
+        this.maxSize = maxSize;
+    }
+
+    public PolicyDecision enact(Message message, QueueIntrospective queue)
+    {
+        // TODO: Implement me
+
+
+        return PolicyDecision.ACCEPT;
+    }
+
 }
 
 /** 
@@ -105,15 +127,29 @@ public enum QUEUE_DEFAULT_SIZE = 100;
 // TODO: Templatize in the future on the T element type
 public class Queue : QueueIntrospective
 {
-    private size_t maxSize; // TODO: Remove this and make a policy which respects it
     private PolicyFunction policy;
     private DList!(Message) queue;
     private Mutex lock;
 
-    public this(size_t maxSize = QUEUE_DEFAULT_SIZE, PolicyFunction policy = &nop)
+    import std.functional : toDelegate;
+    public this(PolicyFunction policy = toDelegate(&nop))
     {
         this.lock = new Mutex();
         this.policy = policy;
+    }
+
+    public static Queue makeSmart(size_t maxSize)
+    {
+        SmartPolicy smartPolicy = SmartPolicy(maxSize);
+        PolicyFunction smartPolicyFunction = &smartPolicy.enact;
+
+        Queue smartQueue = new Queue(smartPolicyFunction);
+        return smartQueue;
+    }
+
+    public static makeSmart()
+    {
+        return makeSmart(QUEUE_DEFAULT_SIZE);
     }
 
     public void enqueue(Message message)
