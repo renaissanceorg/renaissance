@@ -188,20 +188,6 @@ public class Queue : QueueIntrospective
         this.policy = policy;
     }
 
-    public static Queue makeSmart(size_t maxSize)
-    {
-        SmartPolicy smartPolicy = SmartPolicy(maxSize);
-        PolicyFunction smartPolicyFunction = &smartPolicy.enact;
-
-        Queue smartQueue = new Queue(smartPolicyFunction);
-        return smartQueue;
-    }
-
-    public static makeSmart()
-    {
-        return makeSmart(QUEUE_DEFAULT_SIZE);
-    }
-
     public void enqueue(Message message)
     {
         // Lock the queue
