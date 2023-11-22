@@ -179,6 +179,9 @@ public class Connection : Thread
             // }
         }
 
+        /** 
+         * Handle the different types of commands
+         */
         switch(incomingCommandType)
         {
             /** 
