@@ -246,11 +246,13 @@ public class Server : MessageDeliveryTransport
         if(fromUser == null)
         {
             // TODO: Handle this
+            logger.warn("Could not find fromUser (User* was null)");
         }
 
         if(toUser == null)
         {
             // TODO: Handle this
+            logger.warn("Could not find toUser (User* was null)");
         }
 
         return true;
