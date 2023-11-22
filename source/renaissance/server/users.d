@@ -2,6 +2,87 @@ module renaissance.server.users;
 
 import core.sync.mutex : Mutex;
 
+public struct Option
+{
+    // TODO: Implement me
+    private string name;
+    private ubyte[] value;
+    private string description;
+    private Mutex lock;
+
+    @disable
+    private this();
+
+    public this(string name)
+    {
+        this.lock = new Mutex();
+        this.name = name;
+    }
+
+    public string getName()
+    {
+        // Lock
+        this.lock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.lock.unlock();
+        }
+
+        // NOTE: String is immutable but incase of cast
+        return name.dup;
+    }
+
+    public void setName(string name)
+    {
+        // Lock
+        this.lock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.lock.unlock();
+        }
+
+        // Copy the argument
+        this.name = name.dup;
+    }
+
+    public ubyte[] getValue()
+    {
+        // Lock
+        this.lock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.lock.unlock();
+        }
+
+        return this.value.dup;
+    }
+
+    public void setValue(ubyte[] value)
+    {
+        // Lock
+        this.lock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.lock.unlock();
+        }
+
+        // Copy the argument
+        this.value = value.dup;
+    }
+}
+
 public enum Status
 {
     ONLINE,
@@ -14,6 +95,7 @@ public struct User
 {
     private string username;
     private Status status;
+    private Option*[string] options; // Profile key-value
     private Mutex lock;
 
     @disable
@@ -77,6 +159,18 @@ public struct User
         this.lock.unlock();
 
         return statusCpy;
+    }
+
+    public void addOption(Option* option)
+    {
+        // Lock
+        this.lock.lock();
+
+        // Insert the option
+        this.options[option.getName()] = option;
+
+        // Unlock
+        this.lock.unlock();
     }
 }
 
@@ -196,12 +290,14 @@ public class AuthManager
         this.usersLock.unlock();
     }
 
-    
+
 
     public bool authenticate(string username, string password)
     {
         logger.dbg("Authentication request for user '"~username~"' with password '"~password~"'");
         bool status;
+
+        // TODO: Disallow the username from being empty
 
         status = this.provider.authenticate(username, password);
         if(status)
