@@ -4,6 +4,7 @@ import renaissance.server.server : Server;
 import std.container.dlist : DList;
 import core.sync.mutex : Mutex;
 import renaissance.logging;
+import std.functional : toDelegate;
 
 public struct Message
 {
@@ -32,6 +33,15 @@ public struct Message
     {
         this.destination = destination;
     }
+}
+
+// TODO: Trim down second argument's access
+public alias EnqueueHook = void delegate(Message, Queue);
+// public alias EnqueueHook = void delegate(Message, Queue);
+
+public void dummyHook(Message latest, Queue from)
+{
+    logger.warn("Dummy hook is called with latest message ", latest, " from queue ", from);
 }
 
 /** 
@@ -183,8 +193,8 @@ public class Queue : QueueIntrospective
     private PolicyFunction policy;
     private DList!(Message) queue;
     private Mutex lock;
+    private EnqueueHook enqueueHook;
 
-    import std.functional : toDelegate;
     public this(PolicyFunction policy = toDelegate(&nop))
     {
         this.lock = new Mutex();
@@ -227,6 +237,18 @@ public class Queue : QueueIntrospective
     
         // Enqueue
         this.queue.insertAfter(this.queue[], message);
+
+        // Run enqueue hook (If enqueue hook starts a thread which tries lcking queue to do something
+        // .. and then awiats (in its delegate) on that it will obviousl deadlock)
+        if(this.enqueueHook)
+        {
+            this.enqueueHook(message, this);
+        }
+    }
+
+    public void setEnqueueHook(EnqueueHook hook)
+    {
+        this.enqueueHook = hook;
     }
 
     protected void lockQueue()
@@ -279,7 +301,11 @@ public class MessageManager
 
         this.smrtPol = SmartPolicy(QUEUE_DEFAULT_SIZE);
         this.sendQueue = new Queue(&smrtPol.enact);
+        // this.sendQueue.setEnqueueHook(toDelegate(&dummyHook));
+        this.sendQueue.setEnqueueHook(&this.stubDeliverSend);
         this.receiveQueue = new Queue(&smrtPol.enact);
+        // this.receiveQueue.setEnqueueHook(toDelegate(&dummyHook));
+        this.receiveQueue.setEnqueueHook(&this.stubDeliverRecv);
     }
 
     public void sendq(Message message)
