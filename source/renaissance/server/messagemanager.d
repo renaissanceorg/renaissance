@@ -34,8 +34,6 @@ public struct Message
     }
 }
 
-public enum QUEUE_DEFAULT_SIZE = 100;
-
 /** 
  * The verdict of any `PolicyFunction`
  *
@@ -101,6 +99,8 @@ public interface QueueIntrospective
     private DList!(Message) getQueue();
     private void unlockQueue();
 }
+
+public enum QUEUE_DEFAULT_SIZE = 100;
 
 // TODO: Templatize in the future on the T element type
 public class Queue : QueueIntrospective
