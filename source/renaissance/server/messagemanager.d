@@ -319,13 +319,13 @@ public class MessageManager
         this.receiveQueue.enqueue(message);
     }
 
-    // NOTE: Stub delivery method - not smart in anyway
+    // NOTE: Stub delivery method to match EnqueueHook API
     private void stubDeliverSend(Message latest, Queue from)
     {
         transport.onOutgoing(latest, from);
     }
 
-    // NOTE: Stub delivery method - not smart in anyway
+    // NOTE: Stub delivery method to match EnqueueHook API
     private void stubDeliverRecv(Message latest, Queue from)
     {
         transport.onIncoming(latest, from);
