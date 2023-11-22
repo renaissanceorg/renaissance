@@ -387,3 +387,39 @@ public class MessageManager
         return manager;
     }
 }
+
+unittest
+{
+    Message r1;
+    Message r2;
+
+    // Create a dummy delivery transport
+    MessageDeliveryTransport dummy = new class MessageDeliveryTransport
+    {
+        public bool onOutgoing(Message latest, Queue from)
+        {
+            r1 = latest;
+            return true;
+        }
+        
+        public bool onIncoming(Message latest, Queue from)
+        {
+            r2 = latest;
+            return true;
+        }
+    };
+
+    // Create a message manager
+    MessageManager mesgMan = MessageManager.create(dummy);
+
+    // Enqueue messages to the send and receive queues
+    Message m1 = Message("deavmi", "gustav", "Hi Tristan, how you're doing?");
+    mesgMan.sendq(m1);
+
+    Message m2 = Message("gustav", "deavmi", "Doing well thanks!");
+    mesgMan.recvq(m2);
+
+    // Check that the delivery transport handled these
+    assert(r1 == m1);
+    assert(r2 == m2);
+}
