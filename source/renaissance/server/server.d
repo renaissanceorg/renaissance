@@ -236,6 +236,23 @@ public class Server : MessageDeliveryTransport
         // TODO: Implement me
         logger.info("Outgoing stub with latest ", latest, "from queue ", from);
 
+        // Lookup the user (source)
+        User* fromUser = this.authManager.getUser(latest.getFrom());
+
+        // Lookup the user (destination)
+        User* toUser = this.authManager.getUser(latest.getDestination());
+
+
+        if(fromUser == null)
+        {
+            // TODO: Handle this
+        }
+
+        if(toUser == null)
+        {
+            // TODO: Handle this
+        }
+
         return true;
     }
 }
