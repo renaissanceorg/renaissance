@@ -161,22 +161,22 @@ public class Connection : Thread
          */
         if(cast(Validatable)incomingCommand)
         {
-            // Validatable validtabaleCommand = cast(Validatable)incomingCommand;
-            // string reason;
-            // if(!validtabaleCommand.validate(reason))
-            // {
-            //     logger.error("Validation failed with reason: '", reason, "'");
+            Validatable validtabaleCommand = cast(Validatable)incomingCommand;
+            string reason;
+            if(!validtabaleCommand.validate(reason))
+            {
+                logger.error("Validation failed with reason: '", reason, "'");
 
                 
-            //     UnknownCommandReply unknownCmdReply = new UnknownCommandReply(reason);
+                UnknownCommandReply unknownCmdReply = new UnknownCommandReply(reason);
 
-            //     mType = MessageType.CLIENT_TO_SERVER;
-            //     responseType = CommandType.UNKNOWN_COMMAND;
-            //     responseCommand = unknownCmdReply;
+                mType = MessageType.CLIENT_TO_SERVER;
+                responseType = CommandType.UNKNOWN_COMMAND;
+                responseCommand = unknownCmdReply;
 
-            //     // TODO: Can we do this without gotos?
-            //     goto encode_n_send;
-            // }
+                // TODO: Can we do this without gotos?
+                goto encode_n_send;
+            }
         }
 
         /** 
