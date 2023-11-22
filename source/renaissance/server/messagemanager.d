@@ -32,6 +32,21 @@ public struct Message
     {
         this.destination = destination;
     }
+
+    public string getBody()
+    {
+        return this.message;
+    }
+
+    public string getFrom()
+    {
+        return this.from;
+    }
+
+    public string getDestination()
+    {
+        return this.destination;
+    }
 }
 
 public enum QUEUE_DEFAULT_SIZE = 100;
