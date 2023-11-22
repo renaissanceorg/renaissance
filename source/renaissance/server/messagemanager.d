@@ -51,16 +51,30 @@ public enum PolicyDecision
  */
 public alias PolicyFunction = PolicyDecision function(Message, Queue);
 
+/** 
+ * NOP policy does nothing and always
+ * returns a positive (`ACCEPT`'d)
+ * verdict
+ *
+ * Returns: `PolicyDecision.ACCEPT` always
+ */
+public PolicyDecision nop(Message, Queue)
+{
+    return PolicyDecision.ACCEPT;
+}
+
 // TODO: Templatize in the future on the T element type
 public class Queue
 {
     private size_t maxSize;
+    private PolicyFunction policy;
     private DList!(Message) queue;
     private Mutex lock;
 
-    public this(size_t maxSize = QUEUE_DEFAULT_SIZE)
+    public this(size_t maxSize = QUEUE_DEFAULT_SIZE, PolicyFunction policy = &nop)
     {
         this.lock = new Mutex();
+        this.policy = policy;
     }
 
     public void enqueue(Message message)
