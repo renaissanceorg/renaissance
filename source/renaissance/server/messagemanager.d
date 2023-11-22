@@ -134,6 +134,9 @@ public class MessageManager
 
         // Enqueue to send-q
         this.sendQueue.enqueue(message);
+
+        // Deliver
+        stubDeliverSend(message, this.sendQueue);
     }
 
     public void recvq(Message message)
@@ -142,6 +145,21 @@ public class MessageManager
 
         // Enqueue to recv-q
         this.receiveQueue.enqueue(message);
+
+        // Deliver
+        stubDeliverRecv(message, this.receiveQueue);
+    }
+
+    // NOTE: Stub delivery method - not smart in anyway
+    private void stubDeliverSend(Message latest, Queue from)
+    {
+        transport.onOutgoing(latest, from);
+    }
+
+    // NOTE: Stub delivery method - not smart in anyway
+    private void stubDeliverRecv(Message latest, Queue from)
+    {
+        transport.onIncoming(latest, from);
     }
     
     public static MessageManager create(MessageDeliveryTransport transport)
