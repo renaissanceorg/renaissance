@@ -257,7 +257,7 @@ public class AuthManager
         // Lock
         this.usersLock.lock();
 
-        foundUser = this.users[username];
+        foundUser = *(username in this.users);
 
         // Unlock
         this.usersLock.unlock();
