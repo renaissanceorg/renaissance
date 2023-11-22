@@ -104,6 +104,15 @@ public struct SmartPolicy
     {
         // TODO: Implement me
 
+        // Lock the queue
+        queue.lockQueue();
+
+        // Obtain the queue
+        // TODO: Implement me
+
+        // Unlock the queue
+        queue.unlockQueue();
+
 
         return PolicyDecision.ACCEPT;
     }
@@ -117,9 +126,9 @@ public struct SmartPolicy
  */
 public interface QueueIntrospective
 {
-    private void lockQueue();
-    private DList!(Message) getQueue();
-    private void unlockQueue();
+    protected void lockQueue();
+    protected DList!(Message) getQueue();
+    protected void unlockQueue();
 }
 
 public enum QUEUE_DEFAULT_SIZE = 100;
@@ -190,19 +199,19 @@ public class Queue : QueueIntrospective
         this.queue.insertAfter(this.queue[], message);
     }
 
-    private void lockQueue()
+    protected void lockQueue()
     {
         // Lock the queue
         this.lock.lock();
     }
 
-    private void unlockQueue()
+    protected void unlockQueue()
     {
         // Unlock the queue
         return this.lock.unlock();
     }
 
-    private DList!(Message) getQueue()
+    protected DList!(Message) getQueue()
     {
         return this.queue;
     }
