@@ -1,7 +1,7 @@
 module renaissance.server.messagemanager;
 
 import renaissance.server.server : Server;
-import std.container.slist : SList;
+import std.container.dlist : DList;
 import core.sync.mutex : Mutex;
 import renaissance.logging;
 
@@ -36,10 +36,18 @@ public struct Message
 
 public enum QUEUE_DEFAULT_SIZE = 100;
 
+public enum PolicyDecision
+{
+    DROP_INCOMING,
+    DROP_TAIL,
+    ACCEPT
+}
+
+// TODO: Templatize in the future on the T element type
 public class Queue
 {
     private size_t maxSize;
-    private SList!(Message) queue;
+    private DList!(Message) queue;
     private Mutex lock;
 
     public this(size_t maxSize = QUEUE_DEFAULT_SIZE)
@@ -59,8 +67,35 @@ public class Queue
             this.lock.unlock();
         }
 
+        // Apply queuing policy
+        PolicyDecision decision = policyCheck();
+
+        // If we should tail-drop
+        if(decision == PolicyDecision.DROP_TAIL)
+        {
+            // Drop tail
+            this.queue.removeBack();
+        }
+        // If we should drop the incoming
+        else if(decision == PolicyDecision.DROP_INCOMING)
+        {
+            // Do not insert
+            return;
+        }
+        // Accept
+        else if(decision == PolicyDecision.ACCEPT)
+        {
+            // Fall through
+        }
+    
         // Enqueue
         this.queue.insertAfter(this.queue[], message);
+    }
+
+    private PolicyDecision policyCheck()
+    {
+        // TODO: Implement me
+        return PolicyDecision.ACCEPT;
     }
 }
 
