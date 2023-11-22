@@ -252,17 +252,26 @@ public class AuthManager
     // NOTE: Don't try de-allocate it, smart ass
     public User* getUser(string username)
     {
-        User* foundUser;
-
         // Lock
         this.usersLock.lock();
 
-        foundUser = *(username in this.users);
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.usersLock.unlock();
+        }
 
-        // Unlock
-        this.usersLock.unlock();
-
-        return foundUser;
+        // Check if such a user exists
+        User** potentialUserPtrPtr = username in this.users;
+        if(potentialUserPtrPtr == null)
+        {
+            return null;
+        }
+        else
+        {
+            return *potentialUserPtrPtr;
+        }
     }
 
     private void addUser(string username)
