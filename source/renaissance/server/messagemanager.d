@@ -36,10 +36,37 @@ public struct Message
 
 public enum QUEUE_DEFAULT_SIZE = 100;
 
+/** 
+ * The verdict of any `PolicyFunction`
+ *
+ * This drives the decisions made
+ * within the `Queue` in terms of
+ * how it shoukd behave
+ */
 public enum PolicyDecision
 {
+    /**
+     * Don't modify the queue
+     * at all. Essentially
+     * dropping the incoming
+     * item
+     */
     DROP_INCOMING,
+
+    /**
+     * The item at the tail
+     * of the queue should be
+     * dropped so as to make
+     * space for a new item
+     * in its place
+     */
     DROP_TAIL,
+    
+    /** 
+     * The incoming item
+     * should be appended
+     * to the queue
+     */
     ACCEPT
 }
 
