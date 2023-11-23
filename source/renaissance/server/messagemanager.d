@@ -136,7 +136,16 @@ public enum PolicyDecision
      * should be appended
      * to the queue
      */
-    ACCEPT
+    ACCEPT,
+
+    /** 
+     * The incoming item
+     * should be appended
+     * to the queue but
+     * no hooks should
+     * be run
+     */
+    ACCEPT_SILENT
 }
 
 /** 
