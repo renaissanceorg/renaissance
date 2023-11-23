@@ -6,12 +6,24 @@ import core.sync.mutex : Mutex;
 import renaissance.logging;
 import std.functional : toDelegate;
 
+/** 
+ * An in-memory representation of
+ * a message
+ */
 public struct Message
 {
     private string destination;
     private string message;
     private string from;
 
+    /** 
+     * Constructs a new message
+     *
+     * Params:
+     *   destination = the destination
+     *   from = the from user
+     *   message = the message itself
+     */
     this(string destination, string from, string message)
     {
         this.destination = destination;
@@ -19,31 +31,65 @@ public struct Message
         this.message = message;
     }
 
+    /** 
+     * Sets the message's body
+     *
+     * Params:
+     *   message = the contents
+     */
     public void setBody(string message)
     {
         this.message = message;
     }
 
+    /** 
+     * Sets the from paramneter
+     *
+     * Params:
+     *   from = the username
+     */
     public void setFrom(string from)
     {
         this.from = from;
     }
 
+    /** 
+     * Sets the destination of this message
+     *
+     * Params:
+     *   destination = the username
+     */
     public void setDestination(string destination)
     {
         this.destination = destination;
     }
 
+    /** 
+     * Returns the contents of this
+     * message
+     *
+     * Returns: the contents
+     */
     public string getBody()
     {
         return this.message;
     }
 
+    /** 
+     * Returns the from parameter
+     *
+     * Returns: the username
+     */
     public string getFrom()
     {
         return this.from;
     }
 
+    /** 
+     * Returns the destination
+     *
+     * Returns: the username
+     */
     public string getDestination()
     {
         return this.destination;
