@@ -38,4 +38,8 @@ public abstract class Listener
     public abstract void startListener();
 
     public abstract void stopListener();
+
+    // TODO: Nudge method to wake up a listener
+    // ... from something - implementation specific
+    public abstract void nudge();
 }
