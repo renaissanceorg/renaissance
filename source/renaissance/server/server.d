@@ -248,11 +248,19 @@ public class Server : MessageDeliveryTransport
             // TODO: Handle this
             logger.warn("Could not find fromUser (User* was null)");
         }
+        else
+        {
+            logger.dbg("Found fromUser (User*)", fromUser.toString());
+        }
 
         if(toUser == null)
         {
             // TODO: Handle this
             logger.warn("Could not find toUser (User* was null)");
+        }
+        else
+        {
+            logger.dbg("Found toUser (User*)", toUser.toString());
         }
 
         return true;

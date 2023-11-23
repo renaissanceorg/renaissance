@@ -172,6 +172,12 @@ public struct User
         // Unlock
         this.lock.unlock();
     }
+
+    public string toString()
+    {
+        import std.conv : to;
+        return "User [username: "~getUsername()~", status: "~to!(string)(getStatus())~"]";
+    }
 }
 
 
