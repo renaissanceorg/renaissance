@@ -50,12 +50,31 @@ public class StreamListener : Listener
         workerThread = new Thread(&connectionLoop);
     }
 
+    Duration backoff = dur!("seconds")(1);
+
     private void connectionLoop()
     {
         while(isRunning)
         {
-            Socket clientSocket = servSock.accept();
-            logger.info("New incoming connection on listener '"~this.toString()~"' from '"~clientSocket.toString()~"'");
+            Socket clientSocket;
+
+            try
+            {
+                clientSocket = servSock.accept();
+                logger.info("New incoming connection on listener '"~this.toString()~"' from '"~clientSocket.toString()~"'");
+            }
+            catch(SocketAcceptException e)
+            {
+                logger.error("There was an error accepting the socket:", e);
+
+                // TODO: Handling accept (which creates a new socket pair) is a problem
+                // ... we must code a backoff in hopes some client disconnects freeing
+                // ... up space for a new fd pair to be created
+                logger.warn("Waiting ", this.backoff, " many seconds before retrying...");
+                Thread.sleep(this.backoff);
+                logger.warn("Retrying the accept");
+                continue;
+            }
 
             /** 
              * Create a `SockStream` from the `Socket`,
