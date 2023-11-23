@@ -161,7 +161,21 @@ public class Queue
     }
 }
 
-
+/** 
+ * Defines an interface of methods
+ * which are to be called whenever
+ * new messages are enqueued onto
+ * a so-called "incoming" (recv-q)
+ * and "outgoing" (send-q) queues
+ *
+ * The `MessageManager` will use
+ * these as the hooks it applies
+ * to its send/recv queues.
+ *
+ * An example usage of this is
+ * to allow `Server` to get notified
+ * whenever a new item appears.
+ */
 public interface MessageDeliveryTransport
 {
     // On incoming message
