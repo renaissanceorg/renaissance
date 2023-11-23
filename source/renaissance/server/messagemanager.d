@@ -304,13 +304,20 @@ public class Queue : QueueIntrospective
         {
             // Fall through
         }
+        // Accept (silent)
+        else if(decision == PolicyDecision.ACCEPT_SILENT)
+        {
+            // Fall through
+        }
     
         // Enqueue
         this.queue.insertAfter(this.queue[], message);
 
         // Run enqueue hook (If enqueue hook starts a thread which tries lcking queue to do something
-        // .. and then awiats (in its delegate) on that it will obviousl deadlock)
-        if(this.enqueueHook)
+        // .. and then awiats (in its delegate) on that it will obviously deadlock)
+        //
+        // Only run if a hook exists AND if not silent
+        if(this.enqueueHook && decision != PolicyDecision.ACCEPT_SILENT)
         {
             this.enqueueHook(message, this);
         }
