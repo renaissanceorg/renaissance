@@ -178,10 +178,30 @@ public class Queue
  */
 public interface MessageDeliveryTransport
 {
-    // On incoming message
+    /** 
+     * Called when a message has just been
+     * enqueued to the incoming queue
+     *
+     * Params:
+     *   latest = the latest message
+     *   from = the queue
+     * Returns: `true` if you handled
+     * this without error, `false`
+     * otherwise
+     */
     public bool onIncoming(Message latest, Queue from);
 
-    // On message that must be egressed
+    /** 
+     * Called when a message has just been
+     * enqueued to the outgoing queue
+     *
+     * Params:
+     *   latest = the latest message
+     *   from = the queue
+     * Returns: `true` if you handled
+     * this without error, `false`
+     * otherwise
+     */
     public bool onOutgoing(Message latest, Queue from);
 }
 
