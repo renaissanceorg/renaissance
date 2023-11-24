@@ -407,6 +407,34 @@ public class AuthManager
         }
     }
 
+    private bool instantiateRecord(string username, ref User* record)
+    {
+        // Lock
+        this.usersLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.usersLock.unlock();
+        }
+
+        // Try get the record
+        User* foundRecord;
+
+        // If record found, return immediately
+        if(hasRecord(username, foundRecord))
+        {
+            record = foundRecord;
+            return true;
+        }
+        // If record NOT found, build it from the backing
+        // ... store
+        else
+        {
+            return this.recordProvider.fetch(username, foundRecord);
+        }
+    }
 
 
     public bool authenticate(string username, string password)
