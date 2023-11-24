@@ -379,7 +379,7 @@ public class AuthManager
         this.usersLock.unlock();
     }
 
-    private bool hasRecord(string username)
+    private bool hasRecord(string username, ref User* record)
     {
         // Lock
         this.usersLock.lock();
@@ -391,7 +391,20 @@ public class AuthManager
             this.usersLock.unlock();
         }
 
-        return (username in this.users) !is null;
+        // Search for record
+        User** recordEntry = username in this.users;
+
+        // If found
+        if(recordEntry != null)
+        {
+            record = *recordEntry;
+            return true;
+        }
+        // If not found
+        else
+        {
+            return false;
+        }
     }
 
 
@@ -408,8 +421,9 @@ public class AuthManager
         {
             // TODO: Honestly, the authenticator should provide the User*
             // TODO: Check for record
-            bool hasRecord = hasRecord(username);
             User* userRecord;
+            bool hasRecord = hasRecord(username);
+            
             if(hasRecord == false)
             {
                 this.recordProvider.fetch(username, userRecord);
