@@ -273,7 +273,10 @@ public class AuthManager
     private Server server;
 
     // TODO: Need an AuthProvider here
-    private AuthProvider provider;
+    private AuthProvider authProvider;
+
+    // Provider/storer of records (User*)
+    private RecordProvider recordProvider;
 
     /** 
      * TODO: We need to find a way to easily 
@@ -306,10 +309,11 @@ public class AuthManager
     private User*[string] users;
     private Mutex usersLock;
 
-    private this(AuthProvider provider)
+    private this(AuthProvider authProvider, RecordProvider recordProvider)
     {
         this.usersLock = new Mutex();
-        this.provider = provider;
+        this.authProvider = authProvider;
+        this.recordProvider= recordProvider;
     }
 
     // NOTE: Don't try de-allocate it, smart ass
@@ -371,10 +375,19 @@ public class AuthManager
 
         // TODO: Disallow the username from being empty
 
-        status = this.provider.authenticate(username, password);
+        status = this.authProvider.authenticate(username, password);
         if(status)
         {
             // TODO: Honestly, the authenticator should provide the User*
+            // TODO: Check for record
+            bool hasRecord = false;
+            User* userRecord;
+            if(hasRecord)
+            {
+                this.recordProvider.fetch(username, userRecord);
+            }
+            
+
             addUser(username);
             logger.info("Authenticated user '"~username~"'");
         }
@@ -386,9 +399,13 @@ public class AuthManager
         return status;
     }
 
-    public static AuthManager create(Server server, AuthProvider provider = new DummyProvider())
+    public static AuthManager create(
+                                    Server server,
+                                    AuthProvider authProvider = new DummyProvider(),
+                                    RecordProvider recordProvider = new DummyRecordProvider()
+                                    )
     {
-        AuthManager manager = new AuthManager(provider);
+        AuthManager manager = new AuthManager(authProvider, recordProvider);
         manager.server = server;
 
 
