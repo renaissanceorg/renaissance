@@ -248,6 +248,20 @@ public interface RecordProvider
     public bool store(User* record);
 }
 
+public final class DummyRecordProvider : RecordProvider
+{
+    public bool fetch(string username, ref User* allocatedRecord)
+    {
+        allocatedRecord = new User(username);
+        return true;
+    }
+
+    public bool store(User* record)
+    {
+        return true;
+    }
+}
+
 // Should handle all users authenticated and
 // act as an information base for the current
 // users
