@@ -208,9 +208,52 @@ public class DummyProvider : AuthProvider
 import renaissance.server.server : Server;
 import renaissance.logging;
 
+/** 
+ * Given a username this can provide
+ * us with an allocated `User*` (a
+ * pointer to a `User` record) completeky
+ * filled with the details from the
+ * backing store
+ *
+ * This also provides the interface for
+ * being able to store these details
+ * back into the backing store
+ */
+public interface RecordProvider
+{
+    /** 
+     * Fetches the record for the provided
+     * username. It will allocate space for
+     * the `User` record and then provide
+     * us back the pointer to that
+     * allocated memory
+     *
+     * Params:
+     *   username = the username
+     *   allocatedRecord = the `User*`
+     * Returns: `true` if the record could
+     * be found, `false` if not or on error
+     */
+    public bool fetch(string username, ref User* allocatedRecord);
+
+    /** 
+     * Stores the provided record back
+     * into the backing store
+     *
+     * Params:
+     *   record = the record to store
+     * Returns: `true` if store succeeded,
+     * `false` otherwise
+     */
+    public bool store(User* record);
+}
+
 // Should handle all users authenticated and
 // act as an information base for the current
 // users
+//
+// This should allow to storing of this data
+// back to the underlying store as well
 public class AuthManager
 {
     private Server server;
@@ -317,6 +360,7 @@ public class AuthManager
         status = this.provider.authenticate(username, password);
         if(status)
         {
+            // TODO: Honestly, the authenticator should provide the User*
             addUser(username);
             logger.info("Authenticated user '"~username~"'");
         }
