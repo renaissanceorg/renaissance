@@ -253,6 +253,7 @@ public final class DummyRecordProvider : RecordProvider
     public bool fetch(string username, ref User* allocatedRecord)
     {
         allocatedRecord = new User(username);
+        logger.dbg("allocatedRecord", allocatedRecord);
         return true;
     }
 
@@ -407,7 +408,7 @@ public class AuthManager
         }
     }
 
-    private bool instantiateRecord(string username, ref User* record)
+    private bool instantiateRecord(string username, ref User* foundRecord)
     {
         // Lock
         this.usersLock.lock();
@@ -420,12 +421,10 @@ public class AuthManager
         }
 
         // Try get the record
-        User* foundRecord;
 
         // If record found, return immediately
         if(hasRecord(username, foundRecord))
         {
-            record = foundRecord;
             return true;
         }
         // If record NOT found, build it from the backing
@@ -450,16 +449,16 @@ public class AuthManager
             // TODO: Honestly, the authenticator should provide the User*
             // TODO: Check for record
             User* userRecord;
-            bool hasRecord = hasRecord(username, userRecord);
             
-            if(hasRecord == false)
+            if(instantiateRecord(username, userRecord))
             {
-                this.recordProvider.fetch(username, userRecord);
+                addUser(userRecord);
+                logger.info("Authenticated user '"~username~"'");
             }
-            
-
-            addUser(userRecord);
-            logger.info("Authenticated user '"~username~"'");
+            else
+            {
+                logger.error("Failed to instantiate user record for user '"~username~"'");
+            }
         }
         else
         {
