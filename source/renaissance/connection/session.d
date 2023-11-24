@@ -44,6 +44,21 @@ public struct Session
         this.links ~= conn;
         logger.dbg("Linked connection", conn);
     }
+
+    public Connection[] getLinks()
+    {
+        // Lock the session
+        this.lock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock the session
+            this.lock.unlock();
+        }
+
+        return this.connections.dup;
+    }
 }
 
 public class SessionManager
@@ -68,6 +83,11 @@ public class SessionManager
 
         // Add the connection
         session.linkConnection(fromConnection);
+    }
+
+    public Session* getSession(User* allocatedRecord)
+    {
+        return poolSession(allocatedRecord);
     }
 
     private Session* poolSession(User* allocatedRecord)
