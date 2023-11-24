@@ -109,7 +109,8 @@ public struct User
 
     // TODO: Disallow parameter less construction?
 
-    public bool setUsername(string username)
+    // TODO: THis should not be allowd
+    private bool setUsername(string username)
     {
         // Username cannot be empty (TODO: Have a regex check)
         if(username.length == 0)
