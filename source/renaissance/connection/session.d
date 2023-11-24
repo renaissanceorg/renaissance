@@ -3,6 +3,8 @@ module renaissance.connection.session;
 import renaissance.connection.connection : Connection;
 import renaissance.server.users : User;
 import core.sync.mutex : Mutex;
+import renaissance.logging;
+
 
 // TODO: One of these should be opened as soon as auth is
 // ... done and stored in server so as to be able to map to it
@@ -15,6 +17,7 @@ public struct Session
 {
     private Connection[] links;
     private User* user;
+    private Mutex lock;
 
     @disable
     private this();
@@ -22,6 +25,24 @@ public struct Session
     this(User* user)
     {
         this.user = user;
+        this.lock = new Mutex();
+    }
+
+    public void linkConnection(Connection conn)
+    {
+        // Lock the session
+        this.lock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock the session
+            this.lock.unlock();
+        }
+
+        // TODO: Safety of not inserting the same entry? (Not major thing for me imo as it comes down just to correct usage)
+        this.links ~= conn;
+        logger.dbg("Linked connection", conn);
     }
 }
 
@@ -41,6 +62,12 @@ public class SessionManager
     {
         // TODO: Map the `allocatedRecord` to a session (pool, so if one doesn't
         // ... exist then create it), afterwhich tack on the `fromConnection`
+
+        Session* session = poolSession(allocatedRecord);
+        logger.dbg("Pooled session: ", session);
+
+        // Add the connection
+        session.linkConnection(fromConnection);
     }
 
     private Session* poolSession(User* allocatedRecord)
@@ -58,10 +85,12 @@ public class SessionManager
         Session** foundPot = allocatedRecord.getUsername() in this.sessions;
         if(foundPot != null)
         {
+            logger.dbg("Pooled an existing session (", *foundPot, ") for user '", allocatedRecord, "'");
             return *foundPot;
         }
         else
         {
+            logger.warn("Session did not exist for '", allocatedRecord, "' therefore creating one");
             Session* allocatedSession = new Session(allocatedRecord);
             this.sessions[allocatedRecord.getUsername()] = allocatedSession;
             return allocatedSession;
