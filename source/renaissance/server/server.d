@@ -10,6 +10,7 @@ import renaissance.logging;
 import renaissance.server.channelmanager;
 import renaissance.server.users;
 import renaissance.server.messagemanager;
+import renaissance.connection.session;
 
 /** 
  * Represents an instance of the daemon which manages
@@ -38,6 +39,8 @@ public class Server : MessageDeliveryTransport
 
     private MessageManager messageManager;
 
+    private SessionManager sessionManager;
+
     /** 
      * Constructs a new server
      */
@@ -55,6 +58,9 @@ public class Server : MessageDeliveryTransport
 
         /* Initialize the message management sub-system */
         this.messageManager = MessageManager.create(this);
+
+        /* Initialize the session management sub-system */
+        this.sessionManager = new SessionManager();
     }
 
 
@@ -198,13 +204,6 @@ public class Server : MessageDeliveryTransport
         connectionQLock.unlock();
     }
 
-    public bool attemptAuth(string username, string password)
-    {
-        logger.dbg("Attempting auth with user '", username, "' and password '", password, "'");
-
-        return this.authManager.authenticate(username, password);
-    }
-
     public string[] getChannelNames(ulong offset, ubyte limit)
     {
         // TODO: Implement me
@@ -219,6 +218,16 @@ public class Server : MessageDeliveryTransport
     public MessageManager getMessageManager()
     {
         return this.messageManager;
+    }
+
+    public AuthManager getAuthenticationManager()
+    {
+        return this.authManager;
+    }
+
+    public SessionManager getSessionManager()
+    {
+        return this.sessionManager;
     }
 
     // On incoming message
@@ -262,6 +271,9 @@ public class Server : MessageDeliveryTransport
         {
             logger.dbg("Found toUser (User*)", toUser.toString());
         }
+
+
+        // TODO: Do we now use some mapping function 
 
         return true;
     }
