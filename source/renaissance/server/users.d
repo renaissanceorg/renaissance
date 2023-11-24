@@ -341,6 +341,7 @@ public class AuthManager
         }
     }
 
+    // TODO: Remove this
     private void addUser(string username)
     {
         // Lock
@@ -349,6 +350,18 @@ public class AuthManager
         // Create the user and insert it
         User* newUser = new User(username);
         this.users[username] = newUser;
+
+        // Unlock
+        this.usersLock.unlock();
+    }
+
+    private void addUser(User* allocatedRecord)
+    {
+        // Lock
+        this.usersLock.lock();
+
+        // Add the entry
+        this.users[allocatedRecord.getUsername()] = allocatedRecord;
 
         // Unlock
         this.usersLock.unlock();
@@ -366,6 +379,21 @@ public class AuthManager
         this.usersLock.unlock();
     }
 
+    private bool hasRecord(string username)
+    {
+        // Lock
+        this.usersLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.usersLock.unlock();
+        }
+
+        return (username in this.users) !is null;
+    }
+
 
 
     public bool authenticate(string username, string password)
@@ -380,15 +408,15 @@ public class AuthManager
         {
             // TODO: Honestly, the authenticator should provide the User*
             // TODO: Check for record
-            bool hasRecord = false;
+            bool hasRecord = hasRecord(username);
             User* userRecord;
-            if(hasRecord)
+            if(hasRecord == false)
             {
                 this.recordProvider.fetch(username, userRecord);
             }
             
 
-            addUser(username);
+            addUser(userRecord);
             logger.info("Authenticated user '"~username~"'");
         }
         else
