@@ -57,7 +57,7 @@ public struct Session
             this.lock.unlock();
         }
 
-        return this.connections.dup;
+        return this.links.dup;
     }
 }
 
