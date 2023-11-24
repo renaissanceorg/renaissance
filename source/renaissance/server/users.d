@@ -422,7 +422,7 @@ public class AuthManager
             // TODO: Honestly, the authenticator should provide the User*
             // TODO: Check for record
             User* userRecord;
-            bool hasRecord = hasRecord(username);
+            bool hasRecord = hasRecord(username, userRecord);
             
             if(hasRecord == false)
             {
