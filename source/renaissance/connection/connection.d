@@ -393,6 +393,16 @@ public class Connection : Thread
         return incomingMessage;
     }
 
+    import renaissance.server.messagemanager : Message;
+    public bool incomingMessage(Message message)
+    {
+        // TODO: Implement message
+        logger.info("Delivering message '", message, "' to this link (", this, ")");
+
+
+        return true;
+    }
+
     /** 
      * Creates a new connection by associating a newly created
      * Connection instance with the provided Server and Socket
