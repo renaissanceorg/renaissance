@@ -248,32 +248,114 @@ public class Server : MessageDeliveryTransport
         // Lookup the user (source)
         User* fromUser = this.authManager.getUser(latest.getFrom());
 
-        // Lookup the user (destination)
-        User* toUser = this.authManager.getUser(latest.getDestination());
+        
 
 
         if(fromUser == null)
         {
             // TODO: Handle this
-            logger.warn("Could not find fromUser (User* was null)");
+            logger.error("Could not find fromUser (User* was null)");
+            return false;
         }
         else
         {
             logger.dbg("Found fromUser (User*)", fromUser.toString());
         }
 
-        if(toUser == null)
+
+        
+        /**
+         * Extract the intended destination
+         *
+         * Based on this we need to make a decision
+         * as to whether the destination refers to:
+         *
+         * 1. A user
+         * 2. A channel
+         *
+         * And we do it in that order
+         */
+        string destinationString = latest.getDestination();
+
+        // Lookup the user (destination)
+        User* toUser = this.authManager.getUser(destinationString);
+        logger.dbg("Delivery type: ", toUser == null ? "toChannel": "toUser");
+
+        // Selected destinations to deliver to
+        User*[] selectedDestinations;
+
+        // Delivery to user
+        if(toUser != null)
         {
-            // TODO: Handle this
-            logger.warn("Could not find toUser (User* was null)");
+            // A single destination must be selected
+            selectedDestinations = [toUser];
         }
+        // Delivery to channel
         else
         {
-            logger.dbg("Found toUser (User*)", toUser.toString());
+            // If a channel exists with such a name
+            if(this.channelManager.channelExists(destinationString))
+            {
+                string[] chanMembers;
+
+                // Member lookup succeeds
+                if(this.channelManager.membershipList(destinationString, chanMembers))
+                {
+                    foreach(string memUsername; chanMembers)
+                    {
+                        User* memberUser = this.authManager.getUser(memUsername);
+                        if(memberUser != null)
+                        {
+                            // Select each member as a destination
+                            selectedDestinations ~= memberUser;
+                        }
+                    }
+                }
+                // Member lookup fails
+                else
+                {
+                    logger.error("Member lookup failed for destination channel '", destinationString, "'");
+                    return false;
+                }
+            }
+            // If the channel does not exist
+            else
+            {
+                logger.error("Could not find a user or channel with the name '", destinationString, "'");
+                return false;
+            }
         }
 
 
-        // TODO: Do we now use some mapping function 
+        
+
+        // TODO: Check if the name is that of a user, if so skip channel name check
+        // TODO: We actually need to lookup members of the channel (destinations)
+        // TODO: For each member do the below:
+
+
+        // Deliver the message to each detination
+        foreach(User* curDest; selectedDestinations)
+        {
+            logger.dbg("Delivering to user '", curDest, "'...");
+
+            // Obtain the session of the destination user
+            Session* toSession = this.sessionManager.getSession(curDest);
+
+            // TODO: Handle case where user is offline (no Connection[]s)
+            // ... the message manager must do this if false is returned
+            foreach(Connection toLink; toSession.getLinks())
+            {
+                logger.dbg("Delivering message '", latest, "' to link ", toLink, " of user '", curDest, "'");
+                if(!toLink.incomingMessage(latest))
+                {
+                    // TODO: Handle failed message?
+                }
+            }
+        }
+
+
+        
 
         return true;
     }
