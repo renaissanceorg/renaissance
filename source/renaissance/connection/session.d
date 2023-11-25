@@ -45,6 +45,34 @@ public struct Session
         logger.dbg("Linked connection", conn);
     }
 
+    public void unlinkConnection(Connection conn)
+    {
+        // Lock the session
+        this.lock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock the session
+            this.lock.unlock();
+        }
+
+        // Remove from list
+        Connection[] newLinks;
+        foreach(Connection cur; this.links)
+        {
+            if(cur !is conn)
+            {
+                newLinks ~= cur;
+            }
+        }
+
+        // Use new list
+        this.links = newLinks;
+
+        logger.dbg("Delinked connection", conn);
+    }
+
     public Connection[] getLinks()
     {
         // Lock the session
