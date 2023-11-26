@@ -342,15 +342,26 @@ public class Server : MessageDeliveryTransport
             // Obtain the session of the destination user
             Session* toSession = this.sessionManager.getSession(curDest);
 
-            // TODO: Handle case where user is offline (no Connection[]s)
-            // ... the message manager must do this if false is returned
-            foreach(Connection toLink; toSession.getLinks())
+            // If such a session exists (TODO (Case?): In case all links went off line? - not yet implemented)
+            if(toSession != null)
             {
-                logger.dbg("Delivering message '", latest, "' to link ", toLink, " of user '", curDest, "'");
-                if(!toLink.incomingMessage(latest))
+                logger.dbg("Mapped user ", *curDest, " to session ", *toSession);
+                
+                // TODO: Handle case where user is offline (no Connection[]s)
+                // ... the message manager must do this if false is returned
+                foreach(Connection toLink; toSession.getLinks())
                 {
-                    // TODO: Handle failed message?
+                    logger.dbg("Delivering message '", latest, "' to link ", toLink, " of user '", curDest, "'");
+                    if(!toLink.incomingMessage(latest))
+                    {
+                        // TODO: Handle failed message?
+                    }
                 }
+            }
+            // If the suer could not be mapped to a session
+            else
+            {
+                logger.error("Could not map user ", *curDest, " to a session");
             }
         }
 
