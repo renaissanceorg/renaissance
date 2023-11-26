@@ -111,6 +111,8 @@ public class Connection : Thread
                 logger.dbg("There was no response, not sending anything.");
             }
         }
+
+        // TODO: Call cleanup+notify server
     }
 
     // FIXME: These should be part of the auth details
@@ -396,9 +398,9 @@ public class Connection : Thread
     import renaissance.server.messagemanager : Message;
     public bool incomingMessage(Message message)
     {
-        // TODO: Implement message
         logger.info("Delivering message '", message, "' to this link (", this, ")");
 
+        // TODO: Implement message
 
         return true;
     }
