@@ -140,9 +140,11 @@ public class Connection : Thread
             }
         }
 
-        // Clean up (TODO: Shutdown the TManager)
+        // Clean up - shutdown the tristanable manager
+        logger.dbg("Stopping tristanable manager...");
+        this.tManager.stop();
+        logger.dbg("Stopping tristanable manager... [done]");
         
-
         // Clean up - notify disconnection
         this.associatedServer.onConnectionDisconnect(this);
     }
