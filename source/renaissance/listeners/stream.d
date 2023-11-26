@@ -9,6 +9,8 @@ import river.impls.sock : SockStream;
 import core.thread;
 import renaissance.connection;
 import renaissance.logging;
+import core.sync.mutex : Mutex;
+import core.sync.condition : Condition;
 
 public class StreamListener : Listener
 {
@@ -29,6 +31,9 @@ public class StreamListener : Listener
      */
     private Thread workerThread;
 
+    private Mutex backoffMutex;
+    private Condition backoffCond;
+
     /** 
      * Whether or not we are running
      *
@@ -48,14 +53,37 @@ public class StreamListener : Listener
 
         /* When started, the thread should run the connectionLoop() */
         workerThread = new Thread(&connectionLoop);
+
+        /* Initialize the backoff facilities */
+        this.backoffMutex = new Mutex();
+        this.backoffCond = new Condition(this.backoffMutex);
     }
+
+    Duration backoffDuration = dur!("seconds")(1);
 
     private void connectionLoop()
     {
         while(isRunning)
         {
-            Socket clientSocket = servSock.accept();
-            logger.info("New incoming connection on listener '"~this.toString()~"' from '"~clientSocket.toString()~"'");
+            Socket clientSocket;
+
+            try
+            {
+                clientSocket = servSock.accept();
+                logger.info("New incoming connection on listener '"~this.toString()~"' from '"~clientSocket.toString()~"'");
+            }
+            catch(SocketAcceptException e)
+            {
+                logger.error("There was an error accepting the socket:", e);
+
+                // TODO: Handling accept (which creates a new socket pair) is a problem
+                // ... we must code a backoff in hopes some client disconnects freeing
+                // ... up space for a new fd pair to be created
+                logger.warn("Waiting ", this.backoffDuration, " many seconds before retrying...");
+                backoff();
+                logger.warn("Retrying the accept");
+                continue;
+            }
 
             /** 
              * Create a `SockStream` from the `Socket`,
@@ -66,6 +94,18 @@ public class StreamListener : Listener
             Stream clientStream = new SockStream(clientSocket);
             Connection clientConnection = Connection.newConnection(server, clientStream);
         }
+    }
+
+    private void backoff()
+    {
+        // Lock the mutex
+        this.backoffMutex.lock();
+
+        // Wait on the condition for `backoffDuration`-many duration
+        this.backoffCond.wait(this.backoffDuration);
+        
+        // Unlock the mutex
+        this.backoffMutex.unlock();
     }
 
     public override void startListener()
@@ -103,6 +143,25 @@ public class StreamListener : Listener
 
         /* Close the server socket, unblocking any `accept()` call */
         servSock.close();
+    }
+
+    /** 
+     * Wakes up the sleeping
+     * backoff sleeper which
+     * may have been activated
+     * in the case the `accept()`
+     * call was failing
+     */
+    public override void nudge()
+    {
+        // Lock the mutex
+        this.backoffMutex.lock();
+
+        // Wake up any sleeper (only one possible)
+        this.backoffCond.notify();
+
+        // Unlock the mutex
+        this.backoffMutex.unlock();
     }
 
     public static StreamListener create(Server server, Address bindAddress)
