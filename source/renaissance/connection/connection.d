@@ -22,6 +22,7 @@ import std.conv : to;
 
 public enum LinkType
 {
+    UNSET,
     USER,
     SERVER
 }
@@ -42,6 +43,12 @@ public class Connection : Thread
     // TODO: TRistanable manager here
     private Manager tManager;
     private Queue incomingQueue;
+
+    /** 
+     * Whether this is a user connection
+     * or a server link
+     */
+    private LinkType linkType;
 
     private this(Server associatedServer, Stream clientStream)
     {
@@ -70,6 +77,11 @@ public class Connection : Thread
      
         /* Set this Queue as the default Queue */
         this.tManager.setDefaultQueue(this.incomingQueue);
+    }
+
+    public LinkType getLinkType()
+    {
+        return this.linkType;
     }
 
     private void worker()
