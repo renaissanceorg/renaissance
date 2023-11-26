@@ -144,6 +144,11 @@ public class Connection : Thread
         logger.dbg("Stopping tristanable manager...");
         this.tManager.stop();
         logger.dbg("Stopping tristanable manager... [done]");
+
+        // Clean up - shutdown the socket (close it)
+        logger.dbg("Shutting down river stream...");
+        clientStream.close();
+        logger.dbg("Shutting down river stream... [done]");
         
         // Clean up - notify disconnection
         this.associatedServer.onConnectionDisconnect(this);
