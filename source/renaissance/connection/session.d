@@ -4,7 +4,7 @@ import renaissance.connection.connection : Connection;
 import renaissance.server.users : User;
 import core.sync.mutex : Mutex;
 import renaissance.logging;
-
+import std.conv : to;
 
 // TODO: One of these should be opened as soon as auth is
 // ... done and stored in server so as to be able to map to it
@@ -86,6 +86,21 @@ public struct Session
         }
 
         return this.links.dup;
+    }
+
+    public string toString()
+    {
+        // Lock the session
+        this.lock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock the session
+            this.lock.unlock();
+        }
+
+        return "Session [user: "~to!(string)(this.user)~", links: "~to!(string)(this.links.length)~"]";
     }
 }
 
