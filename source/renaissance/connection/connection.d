@@ -96,8 +96,9 @@ public class Connection : Thread
 
         // TODO: Well, we'd tasky I guess so I'd need to use it there I guess
 
-        // TODO: Add worker function here
-        while(true)
+        // TODO: Imp,ent nthe loop condition status (exit on error)
+        bool isGood = true;
+        while(isGood)
         {
             // TODO: Addn a tasky/tristanable queue managing thing with
             // ... socket here (probably just the latter)
@@ -130,7 +131,11 @@ public class Connection : Thread
             }
         }
 
-        // TODO: Call cleanup+notify server
+        // Clean up (TODO: Shutdown the TManager)
+        
+
+        // Clean up - notify disconnection
+        this.associatedServer.onConnectionDisconnect(this);
     }
 
     // FIXME: These should be part of the auth details
