@@ -13,4 +13,4 @@
 <br>
 <br>
 
-[![D](https://github.com/renaissanceorg/renaissance/actions/workflows/d.yml/badge.svg)](https://github.com/renaissanceorg/renaissance/actions/workflows/d.yml)
+[![D](https://github.com/renaissanceorg/renaissance/actions/workflows/d.yml/badge.svg)](https://github.com/renaissanceorg/renaissance/actions/workflows/d.yml) [![Coverage Status](https://coveralls.io/repos/github/renaissanceorg/renaissance/badge.svg?branch=feature/queueing)](https://coveralls.io/github/renaissanceorg/renaissance?branch=feature/queueing)
