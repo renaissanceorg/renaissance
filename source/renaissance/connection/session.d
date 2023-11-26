@@ -100,6 +100,7 @@ public struct Session
             this.lock.unlock();
         }
 
+        // TODO: Use getLinks() rather and getUser() (both should be MT sfae, make the latter exist+MTSafe)
         return "Session [user: "~to!(string)(this.user)~", links: "~to!(string)(this.links.length)~"]";
     }
 }
