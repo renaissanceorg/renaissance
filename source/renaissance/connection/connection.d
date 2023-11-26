@@ -96,9 +96,7 @@ public class Connection : Thread
 
         // TODO: Well, we'd tasky I guess so I'd need to use it there I guess
 
-        // TODO: Imp,ent nthe loop condition status (exit on error)
-        bool isGood = true;
-        queue_loop: while(isGood)
+        queue_loop: while(true)
         {
             // TODO: Addn a tasky/tristanable queue managing thing with
             // ... socket here (probably just the latter)
