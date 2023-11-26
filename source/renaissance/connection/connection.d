@@ -20,6 +20,13 @@ import renaissance.server.channelmanager : ChannelManager, Channel;
 
 import std.conv : to;
 
+public enum LinkType
+{
+    UNSET,
+    USER,
+    SERVER
+}
+
 public class Connection : Thread
 {
     /** 
@@ -36,6 +43,12 @@ public class Connection : Thread
     // TODO: TRistanable manager here
     private Manager tManager;
     private Queue incomingQueue;
+
+    /** 
+     * Whether this is a user connection
+     * or a server link
+     */
+    private LinkType linkType;
 
     private this(Server associatedServer, Stream clientStream)
     {
@@ -66,6 +79,11 @@ public class Connection : Thread
         this.tManager.setDefaultQueue(this.incomingQueue);
     }
 
+    public LinkType getLinkType()
+    {
+        return this.linkType;
+    }
+
     private void worker()
     {
         // TODO: Start tristanable manager here
@@ -78,8 +96,9 @@ public class Connection : Thread
 
         // TODO: Well, we'd tasky I guess so I'd need to use it there I guess
 
-        // TODO: Add worker function here
-        while(true)
+        // TODO: Imp,ent nthe loop condition status (exit on error)
+        bool isGood = true;
+        while(isGood)
         {
             // TODO: Addn a tasky/tristanable queue managing thing with
             // ... socket here (probably just the latter)
@@ -111,6 +130,12 @@ public class Connection : Thread
                 logger.dbg("There was no response, not sending anything.");
             }
         }
+
+        // Clean up (TODO: Shutdown the TManager)
+        
+
+        // Clean up - notify disconnection
+        this.associatedServer.onConnectionDisconnect(this);
     }
 
     // FIXME: These should be part of the auth details

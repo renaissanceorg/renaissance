@@ -370,6 +370,31 @@ public class Server : MessageDeliveryTransport
 
         return true;
     }
+
+    // On connection disconnecting
+    public void onConnectionDisconnect(Connection connection)
+    {
+        // TODO: Decide whether it is a user link or a server de-link
+
+        import renaissance.connection.connection : LinkType;
+        LinkType type = connection.getLinkType();
+        logger.dbg("Disconnecting link ", connection, " of type ", type);
+
+        switch(type)
+        {
+            case LinkType.UNSET:
+                logger.warn("Not doing anything because this link's type was never set");
+                break;
+            case LinkType.USER:
+                // TODO: Implement me
+                break;
+            case LinkType.SERVER:
+                // TODO: Implement me
+                break;
+            default:
+                break;
+        }
+    }
 }
 
 version(unittest)
