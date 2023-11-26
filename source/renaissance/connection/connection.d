@@ -20,6 +20,12 @@ import renaissance.server.channelmanager : ChannelManager, Channel;
 
 import std.conv : to;
 
+public enum LinkType
+{
+    USER,
+    SERVER
+}
+
 public class Connection : Thread
 {
     /** 
