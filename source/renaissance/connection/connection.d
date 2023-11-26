@@ -96,9 +96,7 @@ public class Connection : Thread
 
         // TODO: Well, we'd tasky I guess so I'd need to use it there I guess
 
-        // TODO: Imp,ent nthe loop condition status (exit on error)
-        bool isGood = true;
-        while(isGood)
+        queue_loop: while(true)
         {
             // TODO: Addn a tasky/tristanable queue managing thing with
             // ... socket here (probably just the latter)
@@ -113,9 +111,20 @@ public class Connection : Thread
             // ... (this would make sense as this woul dbe something)
             // ... we didn't test for
 
-            // Dequeue a message from the incoming queue
-            TaggedMessage incomingMessage = incomingQueue.dequeue();
-
+            
+            TaggedMessage incomingMessage;
+            
+            try
+            {
+                // Dequeue a message from the incoming queue
+                incomingMessage = incomingQueue.dequeue();
+            }
+            catch(TristanableException e)
+            {
+                logger.error("We had a fatal tristanable exception whilst dequeue()'ing: "~e.toString());
+                break queue_loop;
+            }
+            
             logger.dbg("Awoken? after dequeue()");
 
             // Process the message
@@ -131,11 +140,20 @@ public class Connection : Thread
             }
         }
 
-        // Clean up (TODO: Shutdown the TManager)
-        
+        // Clean up - shutdown the tristanable manager
+        logger.dbg("Stopping tristanable manager...");
+        this.tManager.stop();
+        logger.dbg("Stopping tristanable manager... [done]");
 
+        // Clean up - shutdown the socket (close it)
+        logger.dbg("Shutting down river stream...");
+        clientStream.close();
+        logger.dbg("Shutting down river stream... [done]");
+        
         // Clean up - notify disconnection
+        logger.dbg("Notifying the server of connection disconnect...");
         this.associatedServer.onConnectionDisconnect(this);
+        logger.dbg("Notifying the server of connection disconnect... [done]");
     }
 
     // FIXME: These should be part of the auth details
