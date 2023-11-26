@@ -151,7 +151,9 @@ public class Connection : Thread
         logger.dbg("Shutting down river stream... [done]");
         
         // Clean up - notify disconnection
+        logger.dbg("Notifying the server of connection disconnect...");
         this.associatedServer.onConnectionDisconnect(this);
+        logger.dbg("Notifying the server of connection disconnect... [done]");
     }
 
     // FIXME: These should be part of the auth details
