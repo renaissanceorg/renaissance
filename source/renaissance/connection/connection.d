@@ -111,8 +111,6 @@ public class Connection : Thread
                 logger.dbg("There was no response, not sending anything.");
             }
         }
-
-        // TODO: Call cleanup+notify server
     }
 
     // FIXME: These should be part of the auth details
