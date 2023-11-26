@@ -10,6 +10,7 @@ import renaissance.logging;
 import renaissance.server.channelmanager;
 import renaissance.server.users;
 import renaissance.server.messagemanager;
+import renaissance.connection.session;
 
 /** 
  * Represents an instance of the daemon which manages
@@ -38,6 +39,8 @@ public class Server : MessageDeliveryTransport
 
     private MessageManager messageManager;
 
+    private SessionManager sessionManager;
+
     /** 
      * Constructs a new server
      */
@@ -55,6 +58,9 @@ public class Server : MessageDeliveryTransport
 
         /* Initialize the message management sub-system */
         this.messageManager = MessageManager.create(this);
+
+        /* Initialize the session management sub-system */
+        this.sessionManager = new SessionManager();
     }
 
 
@@ -198,13 +204,6 @@ public class Server : MessageDeliveryTransport
         connectionQLock.unlock();
     }
 
-    public bool attemptAuth(string username, string password)
-    {
-        logger.dbg("Attempting auth with user '", username, "' and password '", password, "'");
-
-        return this.authManager.authenticate(username, password);
-    }
-
     public string[] getChannelNames(ulong offset, ubyte limit)
     {
         // TODO: Implement me
@@ -219,6 +218,16 @@ public class Server : MessageDeliveryTransport
     public MessageManager getMessageManager()
     {
         return this.messageManager;
+    }
+
+    public AuthManager getAuthenticationManager()
+    {
+        return this.authManager;
+    }
+
+    public SessionManager getSessionManager()
+    {
+        return this.sessionManager;
     }
 
     // On incoming message
@@ -239,29 +248,125 @@ public class Server : MessageDeliveryTransport
         // Lookup the user (source)
         User* fromUser = this.authManager.getUser(latest.getFrom());
 
-        // Lookup the user (destination)
-        User* toUser = this.authManager.getUser(latest.getDestination());
+        
 
 
         if(fromUser == null)
         {
             // TODO: Handle this
-            logger.warn("Could not find fromUser (User* was null)");
+            logger.error("Could not find fromUser (User* was null)");
+            return false;
         }
         else
         {
             logger.dbg("Found fromUser (User*)", fromUser.toString());
         }
 
-        if(toUser == null)
+
+        
+        /**
+         * Extract the intended destination
+         *
+         * Based on this we need to make a decision
+         * as to whether the destination refers to:
+         *
+         * 1. A user
+         * 2. A channel
+         *
+         * And we do it in that order
+         */
+        string destinationString = latest.getDestination();
+
+        // Lookup the user (destination)
+        User* toUser = this.authManager.getUser(destinationString);
+        logger.dbg("Delivery type: ", toUser == null ? "toChannel": "toUser");
+
+        // Selected destinations to deliver to
+        User*[] selectedDestinations;
+
+        // Delivery to user
+        if(toUser != null)
         {
-            // TODO: Handle this
-            logger.warn("Could not find toUser (User* was null)");
+            // A single destination must be selected
+            selectedDestinations = [toUser];
         }
+        // Delivery to channel
         else
         {
-            logger.dbg("Found toUser (User*)", toUser.toString());
+            // If a channel exists with such a name
+            if(this.channelManager.channelExists(destinationString))
+            {
+                string[] chanMembers;
+
+                // Member lookup succeeds
+                if(this.channelManager.membershipList(destinationString, chanMembers))
+                {
+                    foreach(string memUsername; chanMembers)
+                    {
+                        User* memberUser = this.authManager.getUser(memUsername);
+                        if(memberUser != null)
+                        {
+                            // Select each member as a destination
+                            selectedDestinations ~= memberUser;
+                        }
+                    }
+                }
+                // Member lookup fails
+                else
+                {
+                    logger.error("Member lookup failed for destination channel '", destinationString, "'");
+                    return false;
+                }
+            }
+            // If the channel does not exist
+            else
+            {
+                logger.error("Could not find a user or channel with the name '", destinationString, "'");
+                return false;
+            }
         }
+
+
+        
+
+        // TODO: Check if the name is that of a user, if so skip channel name check
+        // TODO: We actually need to lookup members of the channel (destinations)
+        // TODO: For each member do the below:
+
+
+        // Deliver the message to each detination
+        foreach(User* curDest; selectedDestinations)
+        {
+            logger.dbg("Delivering to user '", curDest, "'...");
+
+            // Obtain the session of the destination user
+            Session* toSession = this.sessionManager.getSession(curDest);
+
+            // If such a session exists (TODO (Case?): In case all links went off line? - not yet implemented)
+            if(toSession != null)
+            {
+                logger.dbg("Mapped user ", *curDest, " to session ", *toSession);
+                
+                // TODO: Handle case where user is offline (no Connection[]s)
+                // ... the message manager must do this if false is returned
+                foreach(Connection toLink; toSession.getLinks())
+                {
+                    logger.dbg("Delivering message '", latest, "' to link ", toLink, " of user '", curDest, "'");
+                    if(!toLink.incomingMessage(latest))
+                    {
+                        // TODO: Handle failed message?
+                    }
+                }
+            }
+            // If the suer could not be mapped to a session
+            else
+            {
+                logger.error("Could not map user ", *curDest, " to a session");
+            }
+        }
+
+
+        
 
         return true;
     }

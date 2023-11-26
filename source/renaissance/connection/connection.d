@@ -228,8 +228,12 @@ public class Connection : Thread
              */
             case CommandType.AUTH_COMMAND:
             {
+                // Authentication management
+                import renaissance.server.users;
+                AuthManager authMan = this.associatedServer.getAuthenticationManager();
+
                 AuthMessage authMessage = cast(AuthMessage)baseMessage.getCommand();
-                bool status = this.associatedServer.attemptAuth(authMessage.getUsername(), authMessage.getPassword());
+                bool status = authMan.authenticate(authMessage.getUsername(), authMessage.getPassword());
 
                 // TODO: This is just for testing now - i intend to have a nice auth manager
                 
@@ -241,6 +245,14 @@ public class Connection : Thread
 
                     // Save username
                     this.myUsername = authMessage.getUsername();
+
+                    // Authentication management
+                    User* userRecord = authMan.getUser(authMessage.getUsername()); // Would work as auth succeeded meaning auth man made us a User*
+
+                    // Session management
+                    import renaissance.connection.session;
+                    SessionManager seshMan = this.associatedServer.getSessionManager();
+                    seshMan.addConnection(userRecord, this);
                 }
                 else
                 {
@@ -404,6 +416,16 @@ public class Connection : Thread
         incomingMessage.setPayload(response.encode());
         
         return incomingMessage;
+    }
+
+    import renaissance.server.messagemanager : Message;
+    public bool incomingMessage(Message message)
+    {
+        logger.info("Delivering message '", message, "' to this link (", this, ")");
+
+        // TODO: Implement message
+
+        return true;
     }
 
     /** 

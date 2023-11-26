@@ -109,7 +109,8 @@ public struct User
 
     // TODO: Disallow parameter less construction?
 
-    public bool setUsername(string username)
+    // TODO: THis should not be allowd
+    private bool setUsername(string username)
     {
         // Username cannot be empty (TODO: Have a regex check)
         if(username.length == 0)
@@ -208,15 +209,76 @@ public class DummyProvider : AuthProvider
 import renaissance.server.server : Server;
 import renaissance.logging;
 
+/** 
+ * Given a username this can provide
+ * us with an allocated `User*` (a
+ * pointer to a `User` record) completeky
+ * filled with the details from the
+ * backing store
+ *
+ * This also provides the interface for
+ * being able to store these details
+ * back into the backing store
+ */
+public interface RecordProvider
+{
+    /** 
+     * Fetches the record for the provided
+     * username. It will allocate space for
+     * the `User` record and then provide
+     * us back the pointer to that
+     * allocated memory
+     *
+     * Params:
+     *   username = the username
+     *   allocatedRecord = the `User*`
+     * Returns: `true` if the record could
+     * be found, `false` if not or on error
+     */
+    public bool fetch(string username, ref User* allocatedRecord);
+
+    /** 
+     * Stores the provided record back
+     * into the backing store
+     *
+     * Params:
+     *   record = the record to store
+     * Returns: `true` if store succeeded,
+     * `false` otherwise
+     */
+    public bool store(User* record);
+}
+
+public final class DummyRecordProvider : RecordProvider
+{
+    public bool fetch(string username, ref User* allocatedRecord)
+    {
+        allocatedRecord = new User(username);
+        logger.dbg("allocatedRecord", allocatedRecord);
+        return true;
+    }
+
+    public bool store(User* record)
+    {
+        return true;
+    }
+}
+
 // Should handle all users authenticated and
 // act as an information base for the current
 // users
+//
+// This should allow to storing of this data
+// back to the underlying store as well
 public class AuthManager
 {
     private Server server;
 
     // TODO: Need an AuthProvider here
-    private AuthProvider provider;
+    private AuthProvider authProvider;
+
+    // Provider/storer of records (User*)
+    private RecordProvider recordProvider;
 
     /** 
      * TODO: We need to find a way to easily 
@@ -249,10 +311,11 @@ public class AuthManager
     private User*[string] users;
     private Mutex usersLock;
 
-    private this(AuthProvider provider)
+    private this(AuthProvider authProvider, RecordProvider recordProvider)
     {
         this.usersLock = new Mutex();
-        this.provider = provider;
+        this.authProvider = authProvider;
+        this.recordProvider= recordProvider;
     }
 
     // NOTE: Don't try de-allocate it, smart ass
@@ -280,6 +343,7 @@ public class AuthManager
         }
     }
 
+    // TODO: Remove this
     private void addUser(string username)
     {
         // Lock
@@ -288,6 +352,18 @@ public class AuthManager
         // Create the user and insert it
         User* newUser = new User(username);
         this.users[username] = newUser;
+
+        // Unlock
+        this.usersLock.unlock();
+    }
+
+    private void addUser(User* allocatedRecord)
+    {
+        // Lock
+        this.usersLock.lock();
+
+        // Add the entry
+        this.users[allocatedRecord.getUsername()] = allocatedRecord;
 
         // Unlock
         this.usersLock.unlock();
@@ -305,6 +381,60 @@ public class AuthManager
         this.usersLock.unlock();
     }
 
+    private bool hasRecord(string username, ref User* record)
+    {
+        // Lock
+        this.usersLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.usersLock.unlock();
+        }
+
+        // Search for record
+        User** recordEntry = username in this.users;
+
+        // If found
+        if(recordEntry != null)
+        {
+            record = *recordEntry;
+            return true;
+        }
+        // If not found
+        else
+        {
+            return false;
+        }
+    }
+
+    private bool instantiateRecord(string username, ref User* foundRecord)
+    {
+        // Lock
+        this.usersLock.lock();
+
+        // On exit
+        scope(exit)
+        {
+            // Unlock
+            this.usersLock.unlock();
+        }
+
+        // Try get the record
+
+        // If record found, return immediately
+        if(hasRecord(username, foundRecord))
+        {
+            return true;
+        }
+        // If record NOT found, build it from the backing
+        // ... store
+        else
+        {
+            return this.recordProvider.fetch(username, foundRecord);
+        }
+    }
 
 
     public bool authenticate(string username, string password)
@@ -314,11 +444,22 @@ public class AuthManager
 
         // TODO: Disallow the username from being empty
 
-        status = this.provider.authenticate(username, password);
+        status = this.authProvider.authenticate(username, password);
         if(status)
         {
-            addUser(username);
-            logger.info("Authenticated user '"~username~"'");
+            // TODO: Honestly, the authenticator should provide the User*
+            // TODO: Check for record
+            User* userRecord;
+            
+            if(instantiateRecord(username, userRecord))
+            {
+                addUser(userRecord);
+                logger.info("Authenticated user '"~username~"'");
+            }
+            else
+            {
+                logger.error("Failed to instantiate user record for user '"~username~"'");
+            }
         }
         else
         {
@@ -328,9 +469,13 @@ public class AuthManager
         return status;
     }
 
-    public static AuthManager create(Server server, AuthProvider provider = new DummyProvider())
+    public static AuthManager create(
+                                    Server server,
+                                    AuthProvider authProvider = new DummyProvider(),
+                                    RecordProvider recordProvider = new DummyRecordProvider()
+                                    )
     {
-        AuthManager manager = new AuthManager(provider);
+        AuthManager manager = new AuthManager(authProvider, recordProvider);
         manager.server = server;
 
 
