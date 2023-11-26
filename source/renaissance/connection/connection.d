@@ -98,7 +98,7 @@ public class Connection : Thread
 
         // TODO: Imp,ent nthe loop condition status (exit on error)
         bool isGood = true;
-        while(isGood)
+        queue_loop: while(isGood)
         {
             // TODO: Addn a tasky/tristanable queue managing thing with
             // ... socket here (probably just the latter)
@@ -113,9 +113,20 @@ public class Connection : Thread
             // ... (this would make sense as this woul dbe something)
             // ... we didn't test for
 
-            // Dequeue a message from the incoming queue
-            TaggedMessage incomingMessage = incomingQueue.dequeue();
-
+            
+            TaggedMessage incomingMessage;
+            
+            try
+            {
+                // Dequeue a message from the incoming queue
+                incomingMessage = incomingQueue.dequeue();
+            }
+            catch(TristanableException e)
+            {
+                logger.error("We had a fatal tristanable exception whilst dequeue()'ing: "~e.toString());
+                break queue_loop;
+            }
+            
             logger.dbg("Awoken? after dequeue()");
 
             // Process the message
